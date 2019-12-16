@@ -1,4 +1,8 @@
 argparse
+cython
+numpy
+opencv-python
+tensorflow
 dill
 fire
 matplotlib
