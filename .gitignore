@@ -1,8 +1,0 @@
-*.pyc
-*.DS_Store
-*.dat
-*.caffemodel
-Single_Tello_Test/*.crt
-Single_Tello_Test/*.pem.key
-Single_Tello_Test/*.pem
-Single_Tello_Test/log/*
