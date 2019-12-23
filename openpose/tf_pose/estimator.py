@@ -410,21 +410,38 @@ class TfPoseEstimator:
             npimg = np.copy(npimg)
         image_h, image_w = npimg.shape[:2]
         centers = {}
-        for human in humans:
+        print('-------------start draw human----------------')
+        for i,human in enumerate(humans):
+            print(i,': times')
+            print(human)
+            print(type(human))
+            
             # draw point
             for i in range(common.CocoPart.Background.value):
+                
                 if i not in human.body_parts.keys():
                     continue
 
                 body_part = human.body_parts[i]
+                # for x in dir(body_part):   # body_part.scoreは各点における信頼度っぽい。
+                #     print(x)
+                print(i,'  ---  ',body_part)
+                print(body_part.x)
                 center = (int(body_part.x * image_w + 0.5), int(body_part.y * image_h + 0.5))
+                
                 centers[i] = center
                 cv2.circle(npimg, center, 3, common.CocoColors[i], thickness=3, lineType=8, shift=0)
 
             # draw line
+            print('centers')
+            print(centers)
             for pair_order, pair in enumerate(common.CocoPairsRender):
+                if pair_order == 100:
+                    break
                 if pair[0] not in human.body_parts.keys() or pair[1] not in human.body_parts.keys():
                     continue
+                print('pair')
+                print(pair)
 
                 # npimg = cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
                 cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
