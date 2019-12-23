@@ -10,6 +10,7 @@ from tf_pose.estimator import TfPoseEstimator
 from tf_pose.networks import get_graph_path, model_wh
 import matplotlib.pyplot as plt
 import pickle
+import csv
 
 logger = logging.getLogger('TfPoseEstimatorRun')
 logger.handlers.clear()
@@ -19,6 +20,22 @@ ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s')
 ch.setFormatter(formatter)
 logger.addHandler(ch)
+
+def write_csv(file, save_dict):
+    save_row = {}
+
+    with open(file,'w') as f:
+        writer = csv.DictWriter(f, fieldnames=save_dict.keys(),delimiter=",",quotechar='"')
+        writer.writeheader()
+
+        k1 = list(save_dict.keys())[0]
+        length = len(save_dict[k1])
+
+        for i in range(length):
+            for k, vs in save_dict.items():
+                save_row[k] = vs[i]
+
+            writer.writerow(save_row)
 
 
 if __name__ == '__main__':
@@ -51,10 +68,30 @@ if __name__ == '__main__':
     elapsed = time.time() - t
 
     ## file save 
+    human_models = []
+    for i,human in enumerate(humans):
+        human_model = {}
+        print(i,': times')
+        print('x: ',human)
+        
+        # draw point
+        for i in range(common.CocoPart.Background.value):
+            
+            if i not in human.body_parts.keys():
+                continue
 
-    f = open('humans_model.txt', 'wb')
-    pickle.dump(humans, f)
-    f.close()
+            body_part = human.body_parts[i]
+            # for x in dir(body_part):   # body_part.scoreは各点における信頼度っぽい。
+            #     print(x)
+            print(i,'  ---  ',body_part)
+            print(body_part.x)
+            human_model[i] = [body_part.x, body_part.y,body_part.score]
+        
+        human_models.append(human_model)
+    print('human_models')
+    print(human_models)
+
+    write_csv('uncho.csv',human_models[0])
     #############
     logger.info('inference image: %s in %.4f seconds.' % (args.image, elapsed))
     # plt.imshow(image)
