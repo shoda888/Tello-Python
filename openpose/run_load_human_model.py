@@ -1,6 +1,9 @@
 import csv
 import math
 import numpy as np
+from mutagen.mp3 import MP3 as mp3
+import pygame
+import time
 
 def read_dict(file):
     with open(file, newline = "") as f:
@@ -67,3 +70,19 @@ else:
 with open('label.csv', 'a', newline="") as f:
     writer = csv.writer(f)
     writer.writerow([label])
+
+#ラベル毎の音声再生    
+def play(filename):  # MP3を再生，3回再生
+    pygame.mixer.init()
+    pygame.mixer.music.load(filename)  # 音源読み込み
+    mp3_length = mp3(filename).info.length  # 音源の長さ取得
+    pygame.mixer.music.play(3)  # 再生回数指定
+    time.sleep(mp3_length * 3 + 0.25)  # 再生回数指定時長さ変更，再生開始後音源の長さ待機(0.25s誤差解消)
+    pygame.mixer.music.stop()  # 再生停止
+
+
+if label == 0 or label == 1:  # 両腕上げて
+    play("ryoude_up.mp3")
+
+elif label == 2:  # 片腕下げて
+    play("kataude_down.mp3")
