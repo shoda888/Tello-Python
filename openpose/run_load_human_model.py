@@ -37,10 +37,10 @@ lhip = np.array(lhip[0:2]);
 
 #ベクトルの設定
 #p1:首から右尻，p2:首から左尻，p3:右肩から右肘，p4:左肩から左肘
-p1 = neck - rhip;
-p2 = neck - lhip;
-p3 = rsho - relb;
-p4 = lsho - lelb;
+p1 = rhip - neck;
+p2 = lhip - neck;
+p3 = relb - rsho;
+p4 = lelb - lsho;
 
 #ベクトルの角度を計算
 def vec_angle(v1,v2):
@@ -62,27 +62,12 @@ if rang >= 90 and lang < 90:
 elif rang < 90 and lang >= 90:
     #左手のみ挙げている場合(label=1)
     label = 1;
-else:
+elif rang >= 90 and lang >= 90:
     #右手も左手も挙げている場合(label=2)
     label = 2;
-
+else:
+    label = 3
 
 with open('label.csv', 'a', newline="") as f:
     writer = csv.writer(f)
     writer.writerow([label])
-
-#ラベル毎の音声再生    
-def play(filename):  # MP3を再生，3回再生
-    pygame.mixer.init()
-    pygame.mixer.music.load(filename)  # 音源読み込み
-    mp3_length = mp3(filename).info.length  # 音源の長さ取得
-    pygame.mixer.music.play(3)  # 再生回数指定
-    time.sleep(mp3_length * 3 + 0.25)  # 再生回数指定時長さ変更，再生開始後音源の長さ待機(0.25s誤差解消)
-    pygame.mixer.music.stop()  # 再生停止
-
-
-if label == 0 or label == 1:  # 両腕上げて
-    play("ryoude_up.mp3")
-
-elif label == 2:  # 片腕下げて
-    play("kataude_down.mp3")
