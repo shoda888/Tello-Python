@@ -55,8 +55,6 @@ def add_label():
     p3 = relb - rsho;
     p4 = lelb - lsho;
 
-
-
     #右腕，左腕の角度
     rang = vec_angle(p1,p3);
     lang = vec_angle(p2,p4);
@@ -67,10 +65,11 @@ def add_label():
     elif rang < 90 and lang >= 90:
         #左手のみ挙げている場合(label=1)
         label = 1;
-    else:
+    elif rang >= 90 and lang >= 90:
         #右手も左手も挙げている場合(label=2)
         label = 2;
-
+    else:
+        label = 3
 
     with open('label.csv', 'a', newline="") as f:
         writer = csv.writer(f)
