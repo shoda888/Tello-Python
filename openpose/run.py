@@ -105,10 +105,10 @@ if __name__ == '__main__':
     image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
 
     cv2.imwrite("output_img.png",image)
-    
-    # fig = plt.figure()
-    # plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-    # plt.show()
+
+    fig = plt.figure()
+    plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    plt.show()
     
     run_load_human_model.add_label()
 

@@ -83,6 +83,11 @@ def add_label():
         play("kataude_down.mp3")
         print('down hands')
 
+    else:
+        print('----------------')
+        print('label=3')
+
+
 #ラベル毎の音声再生    
 def play(filename):  # MP3を再生，3回再生
     pygame.mixer.init()

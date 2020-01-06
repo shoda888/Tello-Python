@@ -25,8 +25,8 @@ for command in commands:
 
 log = tello.get_log()
 
-out = open('log/' + start_time + '.txt', 'w')
-for stat in log:
-    stat.print_stats()
-    str = stat.return_stats()
-    out.write(str)
+# out = open('log/' + start_time + '.txt', '')
+# for stat in log:
+#     stat.print_stats()
+#     str = stat.return_stats()
+#     out.write(str)
