@@ -18,29 +18,7 @@ def read_dict(file):
     return return_dict
 
 
-data = read_dict("uncho.csv")
-#1:首，2:右肩，3:右肘，5:左肩，6:左肘，8:右尻，11:左尻
-neck = [float(s) for s in data["1"]];
-neck = np.array(neck[0:2]);
-rsho = [float(v) for v in data["2"]];
-rsho = np.array(rsho[0:2]);
-relb = [float(v) for v in data["3"]];
-relb = np.array(relb[0:2]);
-lsho = [float(v) for v in data["5"]];
-lsho = np.array(lsho[0:2]);
-lelb = [float(v) for v in data["6"]];
-lelb = np.array(lelb[0:2]);
-rhip = [float(v) for v in data["8"]];
-rhip = np.array(rhip[0:2]);
-lhip = [float(v) for v in data["11"]];
-lhip = np.array(lhip[0:2]);
-
-#ベクトルの設定
-#p1:首から右尻，p2:首から左尻，p3:右肩から右肘，p4:左肩から左肘
-p1 = neck - rhip;
-p2 = neck - lhip;
-p3 = rsho - relb;
-p4 = lsho - lelb;
+# data = read_dict("uncho.csv")
 
 #ベクトルの角度を計算
 def vec_angle(v1,v2):
@@ -52,24 +30,59 @@ def vec_angle(v1,v2):
 
     return theta
 
-#右腕，左腕の角度
-rang = vec_angle(p1,p3);
-lang = vec_angle(p2,p4);
+#1:首，2:右肩，3:右肘，5:左肩，6:左肘，8:右尻，11:左尻
+def add_label():
+    data = read_dict("uncho.csv")
+    neck = [float(s) for s in data["1"]];
+    neck = np.array(neck[0:2]);
+    rsho = [float(v) for v in data["2"]];
+    rsho = np.array(rsho[0:2]);
+    relb = [float(v) for v in data["3"]];
+    relb = np.array(relb[0:2]);
+    lsho = [float(v) for v in data["5"]];
+    lsho = np.array(lsho[0:2]);
+    lelb = [float(v) for v in data["6"]];
+    lelb = np.array(lelb[0:2]);
+    rhip = [float(v) for v in data["8"]];
+    rhip = np.array(rhip[0:2]);
+    lhip = [float(v) for v in data["11"]];
+    lhip = np.array(lhip[0:2]);
 
-if rang >= 90 and lang < 90:
-    #右手のみ挙げている場合(label=0)
-    label = 0;
-elif rang < 90 and lang >= 90:
-    #左手のみ挙げている場合(label=1)
-    label = 1;
-else:
-    #右手も左手も挙げている場合(label=2)
-    label = 2;
+    #ベクトルの設定
+    #p1:首から右尻，p2:首から左尻，p3:右肩から右肘，p4:左肩から左肘
+    p1 = rhip - neck;
+    p2 = lhip - neck;
+    p3 = relb - rsho;
+    p4 = lelb - lsho;
 
 
-with open('label.csv', 'a', newline="") as f:
-    writer = csv.writer(f)
-    writer.writerow([label])
+
+    #右腕，左腕の角度
+    rang = vec_angle(p1,p3);
+    lang = vec_angle(p2,p4);
+
+    if rang >= 90 and lang < 90:
+        #右手のみ挙げている場合(label=0)
+        label = 0;
+    elif rang < 90 and lang >= 90:
+        #左手のみ挙げている場合(label=1)
+        label = 1;
+    else:
+        #右手も左手も挙げている場合(label=2)
+        label = 2;
+
+
+    with open('label.csv', 'a', newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([label])
+
+    if label == 0 or label == 1:  # 両腕上げて
+        play("ryoude_up.mp3")
+        print('up hands')
+
+    elif label == 2:  # 片腕下げて
+        play("kataude_down.mp3")
+        print('down hands')
 
 #ラベル毎の音声再生    
 def play(filename):  # MP3を再生，3回再生
@@ -81,8 +94,4 @@ def play(filename):  # MP3を再生，3回再生
     pygame.mixer.music.stop()  # 再生停止
 
 
-if label == 0 or label == 1:  # 両腕上げて
-    play("ryoude_up.mp3")
 
-elif label == 2:  # 片腕下げて
-    play("kataude_down.mp3")

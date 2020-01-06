@@ -12,6 +12,9 @@ import matplotlib.pyplot as plt
 import pickle
 import csv
 
+import run_load_human_model
+
+
 logger = logging.getLogger('TfPoseEstimatorRun')
 logger.handlers.clear()
 logger.setLevel(logging.DEBUG)
@@ -101,10 +104,14 @@ if __name__ == '__main__':
     print(humans) # humansは画像内に存在している人数が要素数であるリスト形式、中に骨格モデルのデータが入っている
     image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
 
-    fig = plt.figure()
-    plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     cv2.imwrite("output_img.png",image)
-    plt.show()
+    
+    # fig = plt.figure()
+    # plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    # plt.show()
+    
+    run_load_human_model.add_label()
+
 
     # try:
 
