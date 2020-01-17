@@ -85,28 +85,24 @@ def add_label():
     statedata = data["state"]
 
 
-    #アナウンス(state=1,2の場合)
-    #state1:「片腕下げて」
-    if statedata[-1] == "1":
-        play("kataude_down.mp3")
-        #アナウンス直後(state3)に遷移
-        wri("state.csv",3)
-    elif statedata[-1] == "2":
-        play("ryoude_up.mp3")
-        #アナウンス直後(state4)に遷移
-        wri("state.csv",4)
+    # label 現在どんな状況であるか
+    # state 今が近づいたはじめの状態なのか、片腕上げてと次に言いたいのか、
 
 
     #対象の姿勢が一定時間同様だった場合#############################################################################
     if labeldata[-1] == labeldata[-2] and labeldata[-2] == labeldata[-3]:
             #近づいた直前(state=0)，両腕を上げているかどうか確認
         if statedata[-1] == "0":
-            #両腕を上げていた場合，「片腕下げて」のアナウンス直前の状態(state=1)に遷移
+            #両腕を上げていた場合，「片腕下げて」のアナウンス
+            # state=3は片腕下げてをアナウンスした後の状態
             if labeldata[-1] == "2":
-                wri("state.csv",1)
-            #両腕を下げていた場合，「両腕上げて」のアナウンス直前の状態(state=2)に遷移
+                wri("state.csv",3)
+                play("kataude_down.mp3")
+            #両腕を下げていた場合，「両腕上げて」のアナウンス
+            # state=4は両腕上げてをアナウンスした後の状態
             else:
-                wri("state.csv",2)
+                wri("state.csv",4)
+                play("ryoude_up.mp3")
         #「片腕下げて」アナウンス直後(state=3)の場合
         if statedata[-1] == "3":
             #左腕のみor右腕のみ上げている場合
