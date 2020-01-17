@@ -85,6 +85,7 @@ def add_label():
 
     else:
         print('----------------')
+        play("kataude_down.mp3")
         print('label=3')
 
 
