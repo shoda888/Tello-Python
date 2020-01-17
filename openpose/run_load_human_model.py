@@ -18,6 +18,10 @@ def read_dict(file):
     return return_dict
 
 
+def wri(file,pr):
+    with open(file, 'a', newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([pr])
 # data = read_dict("uncho.csv")
 
 #ベクトルの角度を計算
@@ -75,18 +79,60 @@ def add_label():
         writer = csv.writer(f)
         writer.writerow([label])
 
-    if label == 0 or label == 1:  # 両腕上げて
+    data = read_dict("label.csv")
+    labeldata = data["label"]
+    data = read_dict("state.csv")
+    statedata = data["state"]
+
+
+    #アナウンス(state=1,2の場合)
+    #state1:「片腕下げて」
+    if statedata[-1] == "1":
+        play("kataude_down.mp3")
+        #アナウンス直後(state3)に遷移
+        wri("state.csv",3)
+    elif statedata[-1] == "2":
         play("ryoude_up.mp3")
-        print('up hands')
+        #アナウンス直後(state4)に遷移
+        wri("state.csv",4)
 
-    elif label == 2:  # 片腕下げて
-        play("kataude_down.mp3")
-        print('down hands')
 
-    else:
-        print('----------------')
-        play("kataude_down.mp3")
-        print('label=3')
+    #対象の姿勢が一定時間同様だった場合#############################################################################
+    if labeldata[-1] == labeldata[-2] and labeldata[-2] == labeldata[-3]:
+            #近づいた直前(state=0)，両腕を上げているかどうか確認
+        if statedata[-1] == "0":
+            #両腕を上げていた場合，「片腕下げて」のアナウンス直前の状態(state=1)に遷移
+            if labeldata[-1] == "2":
+                wri("state.csv",1)
+            #両腕を下げていた場合，「両腕上げて」のアナウンス直前の状態(state=2)に遷移
+            else:
+                wri("state.csv",2)
+        #「片腕下げて」アナウンス直後(state=3)の場合
+        if statedata[-1] == "3":
+            #左腕のみor右腕のみ上げている場合
+            if labeldata[-1] == "1" or labeldata == "0":
+                #避難勧告(yobikake.csvの値が0である場合，避難勧告とする)
+                wri("yobikake.csv",0)
+                # play('no_help.mp3')
+            else:
+                #救助要請(yobikake.csvの値が1である場合，救助要請とする)
+                wri("yobikake.csv",1)
+                # play('need_help.mp3')
+
+        #「両腕上げて」アナウンス直後(state=4)の場合
+        if statedata[-1] == "4":
+            #両腕上げていた場合
+            if labeldata[-1] == "2":
+                #避難勧告
+                wri("yobikake.csv",0)
+                wri("state.csv",0)
+                # play('no_help.mp3')
+            #そうでない場合
+            else:
+                #救助要請
+                wri("yobikake.csv",1)
+                wri("state.csv",0)
+                # play('need_help.mp3')
 
 
 #ラベル毎の音声再生    
