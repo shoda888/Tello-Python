@@ -20,7 +20,7 @@ class Tello:
         self.tello_adderss = (self.tello_ip, self.tello_port)
         self.log = []
 
-        self.MAX_TIME_OUT = 15.0
+        self.MAX_TIME_OUT = 5.0
 
     def send_command(self, command):
         """

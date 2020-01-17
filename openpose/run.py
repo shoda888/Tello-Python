@@ -84,8 +84,6 @@ if __name__ == '__main__':
                 continue
 
             body_part = human.body_parts[i]
-            # for x in dir(body_part):   # body_part.scoreは各点における信頼度っぽい。
-            #     print(x)
             print(i,'  ---  ',body_part)
             print(body_part.x)
             human_model[i] = [body_part.x, body_part.y,body_part.score]
@@ -101,7 +99,7 @@ if __name__ == '__main__':
 
     print(type(humans))
     print('---------------humans----------------')
-    print(humans) # humansは画像内に存在している人数が要素数であるリスト形式、中に骨格モデルのデータが入っている
+    print(humans) # humans have some elements that is equal how many human
     image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
 
     cv2.imwrite("output_img.png",image)
