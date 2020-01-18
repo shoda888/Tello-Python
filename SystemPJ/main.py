@@ -12,6 +12,7 @@ sys.path.append('./rec_human')
 # import *
 import speak
 from approachModule import Approach 
+# from rekog import Rekog 
 
 # ドローンのstatus定義
 # 'default': ホバリングする(初期状態)
@@ -51,13 +52,17 @@ def main():
 			if drone.status == 'default':
 				# デフォルト状態でホバリングし，常に人を認識する．認識した時，statusを'approach'に変更する
 				
+				# [緊急用] Amazon Rekognition を使った別手法による人検知 (未検証)
+				# rek = Rekog(drone)
+				# rek.catch()
+
 				# デバッグ用
 				time.sleep(1)
 				print(drone.status)
-				drone.to_approach()
 
 			if drone.status == 'approach':
 				# 認識した人に近づく．近づき終わったらstatusを'communicate'に変更する
+				
 				print(drone.status)
 
 				approach = Approach(drone) # Approachクラスのインスタンスを作成
