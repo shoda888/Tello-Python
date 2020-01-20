@@ -64,7 +64,7 @@ class Default:
         """
         被災者をyoloを用いて発見，bboxを作成するメソッド
         """
-        bound = None
+        bound = np.array([0, 0, 0, 0])
         area = 0
 
         """
@@ -100,7 +100,7 @@ class Default:
                           cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
 
             cv2.imshow('detection', img)
-            cv2.waitKey(0)
+            cv2.waitKey(5)
             cv2.destroyAllWindows()
 
             boxes, scores, classes, nums = boxes[0], scores[0], classes[0], nums[0]
@@ -109,9 +109,9 @@ class Default:
                 x1,y1 = ((np.array(boxes[i][0:2]) * wh).astype(np.int32))
                 x2,y2 = ((np.array(boxes[i][2:4]) * wh).astype(np.int32))
                 area0 =(x2-x1)*(y2-y1)
-                if area0 > area:
+                if classes[i] == 0 and area0 > area:
                     area = area0
-                    bound = (x1,y1,x2,y2)
+                    bound = np.array([x1, y1, x2, y2])
 
         return bound
 
@@ -119,7 +119,8 @@ def main(_argv):
     # デバッグ用
     im = cv2.imread('test.jpg')
     default = Default()
-    default.detect(im)
+    bound = default.detect(im)
+    print(bound)
 
 
 if __name__ == '__main__':
