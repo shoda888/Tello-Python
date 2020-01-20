@@ -12,16 +12,6 @@ from yolov3_tf2.models import (
 from yolov3_tf2.dataset import transform_images
 from yolov3_tf2.utils import draw_outputs
 
-flags.DEFINE_string('classes', './data/coco.names', 'path to classes file')
-flags.DEFINE_string('weights', './checkpoints/yolov3.tf',
-                    'path to weights file')
-flags.DEFINE_boolean('tiny', False, 'yolov3 or yolov3-tiny')
-flags.DEFINE_integer('size', 416, 'resize images to')
-flags.DEFINE_string('video', './data/video.mp4',
-                    'path to video file or number for webcam)')
-flags.DEFINE_string('output', None, 'path to output video')
-flags.DEFINE_string('output_format', 'XVID', 'codec used in VideoWriter when saving video to file')
-flags.DEFINE_integer('num_classes', 80, 'number of classes in the model')
 
 """
 ドローンが人を認識していない時に，人を探すクラスを入れたモジュール
@@ -36,6 +26,18 @@ class Default:
             操作するドローン
     """
     def __init__(self):
+        self.FLAGS = flags.FLAGS
+        flags.DEFINE_string('classes', './data/coco.names', 'path to classes file')
+        flags.DEFINE_string('weights', './checkpoints/yolov3.tf',
+                            'path to weights file')
+        flags.DEFINE_boolean('tiny', False, 'yolov3 or yolov3-tiny')
+        flags.DEFINE_integer('size', 416, 'resize images to')
+        flags.DEFINE_string('video', './data/video.mp4',
+                            'path to video file or number for webcam)')
+        flags.DEFINE_string('output', None, 'path to output video')
+        flags.DEFINE_string('output_format', 'XVID', 'codec used in VideoWriter when saving video to file')
+        flags.DEFINE_integer('num_classes', 80, 'number of classes in the model')
+
         """
         Defaultクラスの初期化
         """
@@ -48,7 +50,7 @@ class Default:
 
 
         #self.yolo = YoloV3Tiny(classes=FLAGS.num_classes)
-        self.yolo = YoloV3(classes=FLAGS.num_classes)
+        self.yolo = YoloV3(classes=self.FLAGS.num_classes)
 
         self.yolo.load_weights(FLAGS.weights)
         print('weights loaded')
@@ -91,13 +93,15 @@ class Default:
         times = self.times[-20:]
 
         if nums != 0:
-            self.drone.detect_flag = True
+            # self.drone.detect_flag = True
             img = draw_outputs(img, (boxes, scores, classes, nums), self.class_names)
 
             img = cv2.putText(img, "Time: {:.2f}ms".format(sum(times)/len(times)*1000), (0, 30),
                           cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
 
             cv2.imshow('detection', img)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
             boxes, scores, classes, nums = boxes[0], scores[0], classes[0], nums[0]
             wh = np.flip(img.shape[0:2])
@@ -111,12 +115,15 @@ class Default:
 
         return bound
 
-
-        # 人を検知後，self.drone.detect_flag を立てる
-
-
-if __name__ == '__main__':
+def main(_argv):
     # デバッグ用
     im = cv2.imread('test.jpg')
     default = Default()
     default.detect(im)
+
+
+if __name__ == '__main__':
+    try:
+        app.run(main)
+    except SystemExit:
+        pass
