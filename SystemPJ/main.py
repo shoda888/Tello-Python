@@ -11,8 +11,8 @@ sys.path.append('./ProcessImage')
 sys.path.append('./rec_human')
 # import *
 import speak
-from approachModule import Approach 
-# from rekog import Rekog 
+# from approachModule import Approach 
+from rekog import Rekog 
 
 # ドローンのstatus定義
 # 'default': ホバリングする(初期状態)
@@ -32,7 +32,7 @@ def main():
 
 	time.sleep(0.5)		# 通信が安定するまでちょっと待つ
 
-	drone.takeoff() # 自動で離陸しているが，ここはAlexaを使用して離陸させた方が良いかも(対話を開始するタイミングをトリガーさせるためにも)
+	# drone.takeoff() # 自動で離陸しているが，ここはAlexaを使用して離陸させた方が良いかも(対話を開始するタイミングをトリガーさせるためにも)
 	
 	#Ctrl+cが押されるまでループ
 	try:
@@ -51,14 +51,14 @@ def main():
 			# 関数として使えるように各チームで処理を作ること
 			if drone.status == 'default':
 				# デフォルト状態でホバリングし，常に人を認識する．認識した時，statusを'approach'に変更する
-				
+				print(drone.status)
 				# [緊急用] Amazon Rekognition を使った別手法による人検知 (未検証)
-				# rek = Rekog(drone)
-				# rek.catch()
+				rek = Rekog(drone)
+				rek.catch()
 
 				# デバッグ用
 				time.sleep(1)
-				print(drone.status)
+				# print(drone.status)
 
 			if drone.status == 'approach':
 				# 認識した人に近づく．近づき終わったらstatusを'communicate'に変更する
