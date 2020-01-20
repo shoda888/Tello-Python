@@ -139,6 +139,3 @@ def play(filename):  # MP3を再生，3回再生
     pygame.mixer.music.play(3)  # 再生回数指定
     time.sleep(mp3_length * 3 + 0.25)  # 再生回数指定時長さ変更，再生開始後音源の長さ待機(0.25s誤差解消)
     pygame.mixer.music.stop()  # 再生停止
-
-
-
