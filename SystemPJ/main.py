@@ -12,7 +12,8 @@ sys.path.append('./rec_human')
 # import *
 import speak
 from defaultModule import Default
-from approachModule import Approach 
+from approachModule import Approach
+import os 
 
 # ドローンのstatus定義
 # 'default': ホバリングする(初期状態)
@@ -128,29 +129,34 @@ def main():
 			# cv2.imshow('OpenCV Window', small_image)	# ウィンドウに表示するイメージを変えれば色々表示できる
 
 			# (Y)OpenCVウィンドウでキー入力を1ms待つ
-			# key = cv2.waitKey(1)
-			# if key == 27:					# k が27(ESC)だったらwhileループを脱出，プログラム終了
-			# 	break
-			# elif key == ord('t'):
-			# 	drone.takeoff()				# 離陸
-			# elif key == ord('l'):
-			# 	drone.land()				# 着陸
-			# elif key == ord('w'):
-			# 	drone.move_forward(0.3)		# 前進
-			# elif key == ord('s'):
-			# 	drone.move_backward(0.3)	# 後進
-			# elif key == ord('a'):
-			# 	drone.move_left(0.3)		# 左移動
-			# elif key == ord('d'):
-			# 	drone.move_right(0.3)		# 右移動
-			# elif key == ord('q'):
-			# 	drone.rotate_ccw(20)		# 左旋回
-			# elif key == ord('e'):
-			# 	drone.rotate_cw(20)			# 右旋回
-			# elif key == ord('r'):
-			# 	drone.move_up(0.3)			# 上昇
-			# elif key == ord('f'):
-			# 	drone.move_down(0.3)		# 下降
+			key = cv2.waitKey(1)
+			if key == 27:					# k が27(ESC)だったらwhileループを脱出，プログラム終了
+				break
+			elif key == ord('t'):
+				drone.takeoff()				# 離陸
+			elif key == ord('l'):
+				drone.land()				# 着陸
+			elif key == ord('w'):
+				drone.move_forward(0.3)		# 前進
+			elif key == ord('s'):
+				drone.move_backward(0.3)	# 後進
+			elif key == ord('a'):
+				drone.move_left(0.3)		# 左移動
+			elif key == ord('d'):
+				drone.move_right(0.3)		# 右移動
+			elif key == ord('q'):
+				drone.rotate_ccw(20)		# 左旋回
+			elif key == ord('e'):
+				drone.rotate_cw(20)			# 右旋回
+			elif key == ord('r'):
+				drone.move_up(0.3)			# 上昇
+			elif key == ord('f'):
+				drone.move_down(0.3)		# 下降
+			elif key == ord('o'):
+				image_path = "../openpose/images/"  # openpose
+				image = cv2.imwrite(image_path+"input.jpg",small_image) 
+				os.system('python ../openpose/openpose.py') 
+
 
 			# (Z)5秒おきに'command'を送って、死活チェックを通す
 			current_time = time.time()	# 現在時刻を取得
