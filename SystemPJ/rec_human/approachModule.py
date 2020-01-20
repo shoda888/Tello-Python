@@ -45,54 +45,8 @@ class Approach:
         Args:
             frame int:
                 カメラ画像
-
-        Return:
-            success bool:
-                追跡が成功しているかどうか
-            close bool:
-                追跡が終了したかどうか
         """
 
-        # 追跡が失敗した場合にdrone.detect_flagを倒す
-        # 追跡が成功し，接近できた場合にはdrone.close_flagを立てる
-
-    def process(self):
-        # self.search
-        #探索したら
-        # self.approach
-
-        for i in range(5):
-            time.sleep(1)
-            img = self.drone.read()
-            plt.imshow(img)
-
-
-
-
-
-    def search(self):
-        #cv2selectROIを使用する
-        """
-        被災者をyoloを用いて発見，bboxを作成するメソッド
-        """
-
-    def select_tracker(self, track_type):
-        """
-        コンストラクタで用いるトラッカー初期化用のメソッド
-
-        Args:
-            track_type str:
-                指定されたタイプのトラッカー
-
-        Returns:
-            tracker obj:
-                指定されたタイプのトラッカーインスタンス
-        """
-        tracker = cv2.TrackerBoosting_create() # テスト用に入れた
-
-        return tracker
-
-    def approach(self):
 
         #キャプチャで得たimageとboxを使用する
         drone.read_bbox()
@@ -132,3 +86,7 @@ class Approach:
             self.move_down(0.05)
         else
             self.move_stop#ホバリングのまま　このプログラムは対話時も維持
+
+        
+        # 追跡が失敗した場合にdrone.detect_flagを倒す
+        # 追跡が成功し，接近できた場合にはdrone.close_flagを立てる
