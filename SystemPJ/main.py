@@ -42,6 +42,7 @@ def main():
 
 	drone.takeoff() # 自動で離陸しているが，ここはAlexaを使用して離陸させた方が良いかも(対話を開始するタイミングをトリガーさせるためにも)
 	
+	openpose_flag = 0:
 	#Ctrl+cが押されるまでループ
 	try:
 		while True:
@@ -52,8 +53,9 @@ def main():
 				continue 
 
 			# (B)ここから画像処理
-			image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)		# OpenCV用のカラー並びに変換する
+			image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # OpenCV用のカラー並びに変換する
 			small_image = cv2.resize(image, dsize=(480,360) )	# 画像サイズを半分に変更
+			
 
 			cv2.imshow("camera", small_image) # 名称が"camera"のウィンドウに画像を表示
 			cv2.waitKey(5) # よくわからんがこれを入れないと画像が正しく表示されない

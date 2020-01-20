@@ -76,5 +76,5 @@ def openpose(image,model='cmu',resize='0x0',resize_out_ratio=4.0):
     print(humans) # humans have some elements that is equal how many human
     image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
 
-    cv2.imwrite("output_img.png",image)    
+    cv2.imwrite("output_img" + time.time() + ".jpg",image)    
     run_load_human_model.add_label()
