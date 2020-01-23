@@ -3,7 +3,7 @@ import cv2
 from detect_video import img, width, height
 from tello import Tello
 import time
-from main.py import x, y, w, h
+#from main.py import x, y, w, h
 import matplotlib.pyplot as plt
 #import cv2 mainであるから必要なし?
 
@@ -99,6 +99,8 @@ class Approach:
         (x,y,w,h) = tuple(map(int,roi))
         self.drone.approach_flag　== 0#見つけてないため
         if sucess:#追跡状態
+            self.drone.approach_flag　== 1
+
         """
         searchメソッドで得たbboxを元に，cv2のトラッキングを用いながら
         被災者に接近するメソッド
@@ -108,32 +110,45 @@ class Approach:
         #bboxの中心を判定　4辺の位置を平均化
         #頂点の位置(22,134)(257,44)...から作られる長方形
         #bbox_length 縦横
-        """ 試しに自作したとこ
+        """ 試しに自作したとこ　追跡少々改良
+
         bcent = (int(0.5*(bbox[0]+bbox[2])),int(0.5*(bbox[1]+bbox[3])))
         fcent = (240,180)#画像の中心点 ここは詳しく書き込み必須
 
+        a = bf = ud = tu = 0
         #追跡部分
         #距離判定は人のbox比/全体サイズで行う
-        if (detect_video.width)*(detect_video.height)/(172800) < 0.1:#人との距離を保つ bbox小さくなりすぎた時
-            drone.move_forward(0.2)
-        elif (detect_video.width)*(detect_video.height)/(172800) > 0.6:
-            drone.move_backward(0.2)
-        else:
-            drone.move_stop#ホバリングのまま
+        #カクカク位置変更からゆっくり移動に変更
 
-        if (bcent(1,1)-fcent(1,1)) > 80:#見つけた人が中央から外れたら中央に移動する操作
-            drone.move_left(0.05)
-            drone.rotate_ccw(5)
-        elif (bcent(1,1)-fcent(1,1)) < -80:#優先度は上から順に?
-            drone.move_right(0.05)
-            drone.rotate_cw(5)
-        elif (bcent(2,2)-fcent(2,2)) > 40:
-            drone.move_up(0.05)
-        elif (bcent(2,2)-fcent(2,2)) < -40:
-            drone.move_down(0.05)
+        bfa = (detect_video.width)*(detect_video.height)/(172800)
+        if bfa < 0.1:#人との距離を保つ bbox小さくなりすぎた時
+            bf = int(10 + 1/(bfa+0.01))
+        elif bfa > 0.6:#これらの設定は不感帯も兼ねる
+            bf = -1*int(10 + 1/(-1*bfa+1.01))
         else:
-            drone.move_stop#ホバリングのまま　このプログラムは対話時も維持
-以下CV-FACEのmainよりコピペ"""
+            bf = 0
+            #drone.move_stop#ホバリングのまま
+
+        tua = bcent(1,1)-fcent(1,1)
+        if tua > 80:#見つけた人が中央から外れたら中央に移動する操作
+            tu = 20+int(tua/4)
+        elif tua < -80:#優先度は上から順に?
+            tu = -20-int(tua/4)
+        else:
+            tu = 0
+
+        uda = bcent(2,2)-fcent(2,2)
+        if uda > 40:
+            ud = 10+int(ud/4)
+        elif uda < -40:
+            ud = -10-int(ud/4)
+        else:
+            ud = 0
+
+        drone.send_command('rc %s %s %s %s'%(int(a), int(bf), int(ud), int(tu)) )
+            #速度データ送信
+
+            以下CV-FACEのmainよりコピペ"""
 
             cx = int( x + w/2 )
             cy = int( y + h/2 )
@@ -173,8 +188,8 @@ class Approach:
 
 
         else:
-            self.drone.approach_flag　== 1#見つけたから
-            self.drone.to_detect()
+            self.drone.detect_flag　== 0#見つけたから
+            print("追跡失敗でした…。")
         #detect側に移動する
         # 追跡が失敗した場合にdrone.detect_flagを倒す
         # 追跡が成功し，接近できた場合にはdrone.close_flagを立てる
