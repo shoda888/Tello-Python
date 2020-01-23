@@ -63,11 +63,11 @@ def main():
 				# デフォルト状態でホバリングし，常に人を認識する．認識した時，statusを'approach'に変更する
 				print(drone.status)
 
-				bbox = default.detect(small_image) # 人を探し，検知したら領域をbboxに保存
+				frame, bbox = default.detect() # 人を探し，検知したら領域をbboxに保存
 
 				if drone.detect_flag: # 人を検知後statusをapproachに変更
 					drone.to_approach() 
-					approach = Approach(drone, small_image, bbox, track_type) # Approachクラスのインスタンスを作成，トラッカーの初期化
+					approach = Approach(drone, frame, bbox, track_type) # Approachクラスのインスタンスを作成，トラッカーの初期化
 					continue
 				
 				# デバッグ用
@@ -81,17 +81,15 @@ def main():
 				approach.approach(small_image) # 検知した人を追跡．結果を返す
 
 				# 人を追跡できているか，または接近できたかどうかの判定
-				if drone.detect_flag and drone.close_flag: # 接近できていればstatusをcommunicateへ変更
+				if drone.detect_flag and drone.approach_flag: # 接近できていればstatusをcommunicateへ変更
 					drone.to_communicate()
 				elif not drone.detect_flag: # 追跡が失敗したらdefaultへ戻る
 					drone.to_default()
 					del approach # Approachクラスのインスタンスを削除
-				elif drone.detect_flag and not drone.close_flag: # 追跡しているが接近していないならapproachを続ける
-					continue
 				else: # 例外処理
 					print("なんかエラーっぽいよ")
 					print("detect:" + str(drone.detect_flag))
-					print("close:" + str(drone.close_flag))
+					print("approach:" + str(drone.approach_flag))
 					time.sleep(10)
 
 
