@@ -69,8 +69,7 @@ class Approach:
         認識した人をトラッカーを用いて追跡するメソッド
         """
 
-        self.drone.approach_flag　= False # approachフラグの初期化
-
+        self.drone.approach_flag = False # approachフラグの初期化
 
         while True:
             frame = drone.read()    # 映像を1フレーム取得
