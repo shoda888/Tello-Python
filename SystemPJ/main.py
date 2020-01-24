@@ -67,7 +67,7 @@ def main():
 
 				if drone.detect_flag: # 人を検知後statusをapproachに変更
 					drone.to_approach() 
-					approach = Approach(drone, frame, bbox, track_type) # Approachクラスのインスタンスを作成，トラッカーの初期化
+					approach = Approach(drone, frame, bbox) # Approachクラスのインスタンスを作成，トラッカーの初期化
 					continue
 				
 				# デバッグ用
