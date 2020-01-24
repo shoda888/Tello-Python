@@ -27,27 +27,27 @@ class Approach:
                     ・MedianFlow　これが最適?
                 の4種類から選択(詳細はググれ)
     """
-    def __init__(self, drone, frame, bbox, track_type):
+    def __init__(self, drone, frame, bbox):
         """
         Approachクラスの初期化
         """
         self.drone = drone # 操作するドローン
-        self.tracker = self.select_tracker(track_type) # 指定されたタイプのトラッカーインスタンスの作成
+        self.tracker = self.select_tracker() # 指定されたタイプのトラッカーインスタンスの作成
         self.tracker.init(frame, bbox) # 作成したトラッカーの初期化．画像と認識した人の領域を与える
 
-    def select_tracker(self, track_type):
+    def select_tracker(self):
         """
         コンストラクタで用いるトラッカー初期化用のメソッド
-
-        Args:
-            track_type str:
-                指定されたタイプのトラッカー
 
         Returns:
             tracker obj:
                指定されたタイプのトラッカーインスタンス
         """
-
+        print("0:Boosting")
+        print("1:MIL")
+        print("2:KCF")
+        print("3:TLD")
+        print("4:MedianFlow")
         choice = input("Please select your tracker number: ")
 
         if choice == '0':
