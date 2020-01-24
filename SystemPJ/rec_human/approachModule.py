@@ -72,7 +72,7 @@ class Approach:
         self.drone.approach_flag = False # approachフラグの初期化
 
         while True:
-            frame = drone.read()    # 映像を1フレーム取得
+            frame = self.drone.read()    # 映像を1フレーム取得
             if frame is None or frame.size == 0:    # 中身がおかしかったら無視
                 continue 
 
