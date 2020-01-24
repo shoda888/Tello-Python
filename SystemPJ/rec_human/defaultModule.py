@@ -105,7 +105,6 @@ class Default:
             times = self.times[-20:]
 
             if nums != 0: # 何か物体を検知した場合
-                self.drone.detect_flag = True # detectフラグを立てる
                 
 
                 # 検出結果に対し，もっとも近い人のboundを抽出
