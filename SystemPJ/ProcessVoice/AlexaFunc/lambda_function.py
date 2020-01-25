@@ -54,12 +54,20 @@ class LaunchRequestHandler(AbstractRequestHandler):
         # type: (HandlerInput) -> Response
         speak_output = "被災予備軍を探します"
 
-        return (
-            handler_input.response_builder
-                .speak(speak_output)
-                .ask(speak_output)
-                .response
-        )
+        if publish("landing"):
+            return (
+                handler_input.response_builder
+                    .speak(speak_output)
+                    # .ask("どうしますか？")
+                    .response
+            )
+        else:
+            return (
+                handler_input.response_builder
+                    .speak("通信エラーがおきました。")
+                    # .ask("add a reprompt if you want to keep the session open for the user to respond")
+                    .response
+            )
 
     
 class ReplyIntentHandler(AbstractRequestHandler):
