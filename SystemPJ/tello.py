@@ -491,6 +491,10 @@ class Tello:
         # command = payload[0]
         dic = ast.literal_eval(payload)
 
+        #アレクサの指示でドローンを離陸させる
+        if dic['message'] == "takeoff":
+            self.takeoff()
+
         #対話が行えたらドローンを初期状態に戻す
         if dic['message'] == "solved":
             self.to_default()

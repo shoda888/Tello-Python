@@ -37,10 +37,16 @@ def main():
 	current_time = time.time()	# 現在時刻の保存変数
 	pre_time = current_time		# 5秒ごとの'command'送信のための時刻変数
 
+	drone.subscribe() # 対話開始
+	
+	# ここでアレクサに「救助アプリを開いて」と言うと離陸し対話を受け付ける
+
+	# 強制離陸する場合
+	# drone.takeoff()
+	
+	
 	time.sleep(0.5)		# 通信が安定するまでちょっと待つ
 
-	drone.takeoff() # 自動で離陸しているが，ここはAlexaを使用して離陸させた方が良いかも(対話を開始するタイミングをトリガーさせるためにも)
-	
 	#Ctrl+cが押されるまでループ
 	try:
 		while True:
@@ -102,7 +108,6 @@ def main():
 			if drone.status == 'communicate':
 				# 人と対話する．対話が正常終了したらstatusを'default'に戻す．対話に失敗した場合はstatusを'judingpose'に
 				speak.mp3play('./ProcessVoice/speech_20191223054237114.mp3')
-				drone.subscribe() # 対話開始
 
 				# デバッグ用
 				drone.to_default()
