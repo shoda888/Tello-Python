@@ -48,7 +48,7 @@ def main(_argv):
 	
 	time.sleep(0.5)		# 通信が安定するまでちょっと待つ
 
-	drone.takeoff() # 自動で離陸しているが，ここはAlexaを使用して離陸させた方が良いかも(対話を開始するタイミングをトリガーさせるためにも)
+	# drone.takeoff() # 自動で離陸しているが，ここはAlexaを使用して離陸させた方が良いかも(対話を開始するタイミングをトリガーさせるためにも)
 	
 	#Ctrl+cが押されるまでループ
 	try:
@@ -56,58 +56,38 @@ def main(_argv):
 
 			if drone.start_flag:
 
-				# (A)画像取得
-				frame = drone.read()	# 映像を1フレーム取得
-				if frame is None or frame.size == 0:	# 中身がおかしかったら無視
-					continue 
+				if drone.status == 'default':
+					# デフォルト状態でホバリングし，常に人を認識する．認識した時，statusを'approach'に変更する
+					print(drone.status)
 
-				cv2.imshow("camera", small_image) # 名称が"camera"のウィンドウに画像を表示
-				cv2.waitKey(5) # よくわからんがこれを入れないと画像が正しく表示されない
+					frame, bbox = default.detect() # 人を探し，検知したら領域をbboxに保存
 
+					if drone.detect_flag: # 人を検知後statusをapproachに変更
+						drone.to_communicate() 
+						approach = Approach(drone, frame, bbox) # Approachクラスのインスタンスを作成，トラッカーの初期化
+						continue
+					
+					# デバッグ用
+					# time.sleep(1)
+					# print(drone.status)
+					# drone.to_approach()
 
-				bbox = default.detect(small_image) # 人を探し，検知したら領域をbboxに保存
-
-				if drone.detect_flag: # 人を検知後statusをapproachに変更
-					drone.to_approach() 
-					approach = Approach(drone, small_image, bbox, track_type) # Approachクラスのインスタンスを作成，トラッカーの初期化
-					continue
-				
-				# デバッグ用
-				# time.sleep(1)
-				# print(drone.status)
-				# drone.to_approach()
-
-			if drone.status == 'approach':
-				# 認識した人に近づく．近づき終わったらstatusを'communicate'に変更する
-				print(drone.status)
-				approach.approach(small_image) # 検知した人を追跡．結果を返す
-
-				# 人を追跡できているか，または接近できたかどうかの判定
-				if drone.detect_flag and drone.close_flag: # 接近できていればstatusをcommunicateへ変更
-					drone.to_communicate()
-				elif not drone.detect_flag: # 追跡が失敗したらdefaultへ戻る
-					drone.to_default()
-					del approach # Approachクラスのインスタンスを削除
-				elif drone.detect_flag and not drone.close_flag: # 追跡しているが接近していないならapproachを続ける
-					continue
-				else: # 例外処理
-					print("なんかエラーっぽいよ")
-					print("detect:" + str(drone.detect_flag))
-					print("close:" + str(drone.close_flag))
-					time.sleep(10)
+				if drone.status == 'approach':
+					# 認識した人に近づく．近づき終わったらstatusを'communicate'に変更する
+					print(drone.status)
+					approach.approach() # 検知した人を追跡．結果を返す
 
 					# 人を追跡できているか，または接近できたかどうかの判定
-					if drone.detect_flag and drone.close_flag: # 接近できていればstatusをcommunicateへ変更
-						drone.to_communicate()
+					if drone.detect_flag and drone.approach_flag: # 接近できていればstatusをcommunicateへ変更
+						# drone.to_communicate()
+						break
 					elif not drone.detect_flag: # 追跡が失敗したらdefaultへ戻る
 						drone.to_default()
 						del approach # Approachクラスのインスタンスを削除
-					elif drone.detect_flag and not drone.close_flag: # 追跡しているが接近していないならapproachを続ける
-						continue
 					else: # 例外処理
 						print("なんかエラーっぽいよ")
 						print("detect:" + str(drone.detect_flag))
-						print("close:" + str(drone.close_flag))
+						print("approach:" + str(drone.approach_flag))
 						time.sleep(10)
 
 
@@ -115,17 +95,20 @@ def main(_argv):
 					# time.sleep(1)
 					# drone.to_communicate()
 
+
+				
+
 				if drone.status == 'communicate':
 					# 人と対話する．対話が正常終了したらstatusを'default'に戻す．対話に失敗した場合はstatusを'judingpose'に
 					speak.mp3play('./ProcessVoice/speech_20191223054237114.mp3')
 
 					# デバッグ用
-					drone.to_default()
+					# drone.to_default()
 					# drone.to_judingpose()
 					
-					# time.sleep(15) # 対話時間
-					# if drone.status == 'communicate': # 無言だった場合
-					# 	drone.status = 'judingpose' # 人の姿勢を検出する
+					time.sleep(15) # 対話時間
+					if drone.status == 'communicate': # 無言だった場合
+						drone.status = 'judingpose' # 人の姿勢を検出する
 					
 
 				if drone.status == 'judingpose':
