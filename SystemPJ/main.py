@@ -61,9 +61,6 @@ def main(_argv):
 				if frame is None or frame.size == 0:	# 中身がおかしかったら無視
 					continue 
 
-			cv2.imshow("camera", small_image) # 名称が"camera"のウィンドウに画像を表示
-			cv2.waitKey(5) # よくわからんがこれを入れないと画像が正しく表示されない
-
 				cv2.imshow("camera", small_image) # 名称が"camera"のウィンドウに画像を表示
 				cv2.waitKey(5) # よくわからんがこれを入れないと画像が正しく表示されない
 
