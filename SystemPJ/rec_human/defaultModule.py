@@ -25,25 +25,25 @@ class Default:
         drone obj:
             操作するドローン
     """
-    def __init__(self):
+    def __init__(self,drone):
         """
         Defaultクラスの初期化
         """
         # absl.flag関係の設定
         self.FLAGS = flags.FLAGS
-        flags.DEFINE_string('classes', './data/coco.names', 'path to classes file')
-        flags.DEFINE_string('weights', './checkpoints/yolov3.tf',
+        flags.DEFINE_string('classes', './rec_human/data/coco.names', 'path to classes file')
+        flags.DEFINE_string('weights', './rec_human/checkpoints/yolov3.tf',
                             'path to weights file')
         flags.DEFINE_boolean('tiny', False, 'yolov3 or yolov3-tiny')
         flags.DEFINE_integer('size', 416, 'resize images to')
-        flags.DEFINE_string('video', './data/video.mp4',
+        flags.DEFINE_string('video', './rec_human/data/video.mp4',
                             'path to video file or number for webcam)')
         flags.DEFINE_string('output', None, 'path to output video')
         flags.DEFINE_string('output_format', 'XVID', 'codec used in VideoWriter when saving video to file')
         flags.DEFINE_integer('num_classes', 80, 'number of classes in the model')
 
         
-        # self.drone = drone # Telloインスタンスの設定
+        self.drone = drone # Telloインスタンスの設定
 
 
         # yoloインスタンスの設定
@@ -147,7 +147,7 @@ class Default:
 
 def main(_argv):
     # デバッグ用
-    im = cv2.imread('test.jpg')
+    im = cv2.imread('/rec_human/test.jpg')
     default = Default()
     bound = default.detect(im)
     print(bound)

@@ -33,7 +33,7 @@ class Approach:
         """
         self.drone = drone # 操作するドローン
         self.tracker = self.select_tracker() # 指定されたタイプのトラッカーインスタンスの作成
-        self.tracker.init(frame, bbox) # 作成したトラッカーの初期化．画像と認識した人の領域を与える
+        self.tracker.init(frame, tuple(bbox)) # 作成したトラッカーの初期化．画像と認識した人の領域を与える
 
     def select_tracker(self):
         """
