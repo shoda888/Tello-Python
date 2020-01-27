@@ -70,7 +70,7 @@ def main(_argv):
 				frame, bbox = default.detect() # 人を探し，検知したら領域をbboxに保存
 
 				if drone.detect_flag: # 人を検知後statusをapproachに変更
-					drone.to_approach() 
+					drone.to_communicate() 
 					approach = Approach(drone, frame, bbox) # Approachクラスのインスタンスを作成，トラッカーの初期化
 					continue
 				
