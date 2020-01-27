@@ -44,6 +44,8 @@ class Default:
 
         
         self.drone = drone # Telloインスタンスの設定
+        self.pre_time = time.time()
+        self.center = False
 
 
         # yoloインスタンスの設定
@@ -114,7 +116,7 @@ class Default:
                     x1,y1 = ((np.array(boxes[i][0:2]) * wh).astype(np.int32))
                     x2,y2 = ((np.array(boxes[i][2:4]) * wh).astype(np.int32))
                     area0 =(x2-x1)*(y2-y1) # 検出した矩形の面積を計算
-                    if classes[i] == 0 and area0 > area: # 検出結果が"person"で，面積がもっとも大きければboundを更新
+                    if classes[i] == 0 and scores[i] > 0.8 and area0 > area: # 検出結果が"person"で，面積がもっとも大きければboundを更新
                         self.drone.detect_flag = True # detectフラグを立てる
                         area = area0 # 矩形の面積を保存
                         bound = np.array([x1, y1, x2, y2]) # boundを更新
@@ -128,13 +130,42 @@ class Default:
                 img = cv2.putText(img, "Time: {:.2f}ms".format(sum(times)/len(times)*1000), (0, 30),
                             cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
 
-            # 検出結果の表示
-            cv2.imshow('detection', img)
-            cv2.waitKey(50)
-
-            if self.drone.detect_flag: # detectフラグが立っていれば探索を終了する
                 print("人を検知しました")
-                break
+                x = x1
+                w = x2 - x1
+                cx = int( x + w/2 )
+
+                d = 0   # rcコマンドの初期値は0
+
+                # 目標位置との差分にゲインを掛ける（P制御)
+                dx = 0.1 * (240 - cx)       # 画面中心との差分
+
+                dx = -dx # 制御方向が逆だったので，-1を掛けて逆転させた
+
+
+                # 旋回方向の不感帯を設定
+                d = 0.0 if abs(dx) < 20.0 else dx   # ±20未満ならゼロにする
+                # 旋回方向のソフトウェアリミッタ(±100を超えないように)
+                d =  100 if d >  100.0 else d
+                d = -100 if d < -100.0 else d
+
+                print("dx:" + str(dx))
+
+                # rcコマンドを送信
+                self.drone.send_command('rc %s %s %s %s'%(0, 0, 0, int(d)) )
+
+                
+
+                # (Z)5秒おきに'command'を送って、死活チェックを通す
+                current_time = time.time()  # 現在時刻を取得
+                if current_time - self.pre_time > 5.0 :  # 前回時刻から5秒以上経過しているか？
+                    self.drone.send_command('command')   # 'command'送信
+                    self.pre_time = current_time         # 前回時刻を更新
+                
+                if abs(dx) < 20.0:
+                    cv2.imwrite("detect.png", img)
+                    break
+
             else: # フラグが立っていなければ旋回を行い，もう一度画像検知を行う
                 cnt += 1 # 探索用カウンタを増加
                 self.drone.rotate_cw(45) # 20度旋回
@@ -143,6 +174,12 @@ class Default:
                     self.drone.move_forward(1) # 1m前進
                     cnt = 0 # 探索用カウンタのリセット
 
+            cv2.imshow("detect", img)
+            key = cv2.waitKey(5)
+
+
+                        
+        print("bound:" + str(bound))
         return frame, bound
 
 def main(_argv):

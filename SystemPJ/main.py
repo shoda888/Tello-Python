@@ -41,7 +41,7 @@ def main(_argv):
 	time.sleep(0.5)		# 通信が安定するまでちょっと待つ
 
 	drone.takeoff() # 自動で離陸しているが，ここはAlexaを使用して離陸させた方が良いかも(対話を開始するタイミングをトリガーさせるためにも)
-	drone.move_up(0.3)
+	drone.move_up(1)
 	time.sleep(3) # 離陸後，安定のため小休止
 	
 	#Ctrl+cが押されるまでループ
