@@ -131,16 +131,9 @@ def main(_argv):
 				# cv2.imshow('OpenCV Window', small_image)	# ウィンドウに表示するイメージを変えれば色々表示できる
 
 				# (Y)OpenCVウィンドウでキー入力を1ms待つ
-				key = cv2.waitKey(1)
-				if key == 27:					# k が27(ESC)だったらwhileループを脱出，プログラム終了
-					break
-				elif key == ord('o'):
-					frame = drone.read()
-					image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-
-					cv2.imwrite('./../openpose/images/input.jpg',image)
-					os.system('python3 ./../openpose/play.py')
-
+				# key = cv2.waitKey(1)
+				# if key == 27:					# k が27(ESC)だったらwhileループを脱出，プログラム終了
+				# 	break
 				# elif key == ord('t'):
 				# 	drone.takeoff()				# 離陸
 				# elif key == ord('l'):

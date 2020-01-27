@@ -165,6 +165,9 @@ class Default:
                 if abs(dx) < 20.0:
                     print("centering")
                     cv2.imwrite("detect.png", img)
+
+                    cv2.imwrite('./../openpose/images/input.jpg',image)
+                    os.system('python3 ./../openpose/play.py')
                     break
             else: # フラグが立っていなければ旋回を行い，もう一度画像検知を行う
                 cnt += 1 # 探索用カウンタを増加
