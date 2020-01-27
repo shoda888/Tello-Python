@@ -27,7 +27,7 @@ class Tello:
         self.status = 'default'
 
         self.detect_flag = False # 人の検知フラグ
-        self.close_flag = False # 人の接近フラグ
+        self.approach_flag = False # 人の接近フラグ
         self.start_flag = False # 人の接近フラグ
 
         self.abort_flag = False     # 中断フラグ
