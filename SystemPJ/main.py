@@ -41,6 +41,8 @@ def main(_argv):
 	time.sleep(0.5)		# 通信が安定するまでちょっと待つ
 
 	drone.takeoff() # 自動で離陸しているが，ここはAlexaを使用して離陸させた方が良いかも(対話を開始するタイミングをトリガーさせるためにも)
+	drone.move_up(0.3)
+	time.sleep(3) # 離陸後，安定のため小休止
 	
 	#Ctrl+cが押されるまでループ
 	try:
@@ -67,9 +69,9 @@ def main(_argv):
 				frame, bbox = default.detect() # 人を探し，検知したら領域をbboxに保存
 
 				if drone.detect_flag: # 人を検知後statusをapproachに変更
-					# drone.to_approach() 
+					drone.to_approach() 
 					approach = Approach(drone, frame, bbox) # Approachクラスのインスタンスを作成，トラッカーの初期化
-					break
+					continue
 				
 				# デバッグ用
 				# time.sleep(1)
@@ -79,11 +81,12 @@ def main(_argv):
 			if drone.status == 'approach':
 				# 認識した人に近づく．近づき終わったらstatusを'communicate'に変更する
 				print(drone.status)
-				approach.approach(small_image) # 検知した人を追跡．結果を返す
+				approach.approach() # 検知した人を追跡．結果を返す
 
 				# 人を追跡できているか，または接近できたかどうかの判定
 				if drone.detect_flag and drone.approach_flag: # 接近できていればstatusをcommunicateへ変更
-					drone.to_communicate()
+					# drone.to_communicate()
+					break
 				elif not drone.detect_flag: # 追跡が失敗したらdefaultへ戻る
 					drone.to_default()
 					del approach # Approachクラスのインスタンスを削除

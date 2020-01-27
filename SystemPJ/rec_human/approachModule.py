@@ -35,6 +35,9 @@ class Approach:
         self.tracker = self.select_tracker() # 指定されたタイプのトラッカーインスタンスの作成
         self.tracker.init(frame, tuple(bbox)) # 作成したトラッカーの初期化．画像と認識した人の領域を与える
 
+        self.pre_time = time.time()
+
+
     def select_tracker(self):
         """
         コンストラクタで用いるトラッカー初期化用のメソッド
@@ -43,12 +46,15 @@ class Approach:
             tracker obj:
                指定されたタイプのトラッカーインスタンス
         """
-        print("0:Boosting")
-        print("1:MIL")
-        print("2:KCF")
-        print("3:TLD")
-        print("4:MedianFlow")
-        choice = input("Please select your tracker number: ")
+        tracker = None
+        choice = "3"
+
+        # print("0:Boosting")
+        # print("1:MIL")
+        # print("2:KCF")
+        # print("3:TLD")
+        # print("4:MedianFlow")
+        # choice = input("Please select your tracker number: ")
 
         if choice == '0':
             tracker = cv2.TrackerBoosting_create()
@@ -70,6 +76,7 @@ class Approach:
         """
 
         self.drone.approach_flag = False # approachフラグの初期化
+        current_time = None
 
         
         try:
@@ -87,16 +94,20 @@ class Approach:
 
                 # ドローンの制御部．Tello-CV-faceのコピペなので要調整
                 if success: # 追跡状態
-                    (x,y,w,h) = tuple(map(int,roi)) # bboxの情報を取得
+                    (x1,y1,x2,y2) = tuple(map(int,roi)) # bboxの情報を取得
+                    x = x1
+                    y = y1
+                    w = x2 - x1
+                    h = y2 - y1
                     cx = int( x + w/2 )
                     cy = int( y + h/2 )
 
                     a = b = c = d = 0   # rcコマンドの初期値は0
 
                     # 目標位置との差分にゲインを掛ける（P制御)
-                    dx = 0.4 * (240 - cx)       # 画面中心との差分
-                    dy = 0.4 * (180 - cy)       # 画面中心との差分
-                    dw = 0.8 * (100 - w)        # 基準顔サイズ100pxとの差分
+                    dx = 0.1 * (240 - cx)       # 画面中心との差分
+                    dy = 0.1 * (240 - cy)       # 画面中心との差分
+                    dw = 0.1 * (240 - w)        # 基準サイズ240pxとの差分
 
                     dx = -dx # 制御方向が逆だったので，-1を掛けて逆転させた
 
@@ -129,17 +140,19 @@ class Approach:
                     
                     # 検出結果を書き込んだ画像を表示
                     cv2.imshow("Approaching", frame)
-                    cv2.waitKey(5)
 
                     # 接近の判定
                     area = w * h # 矩形の面積
-                    frame_size = (frame.shape[0] * frame.shape[1]) # 元の画像の大きさを取得
-                    if area > (frame_size / 4): # 矩形の面積が取得画像の1/4より大きければ接近と判定
+                    frame_size = (480 * 360) # 元の画像の大きさを取得
+                    print("area:" + str(area))
+                    print("size:" + str(frame_size))
+                    if area > (frame_size / 2): # 矩形の面積が取得画像の1/4より大きければ接近と判定
                         self.drone.approach_flag = True
                         print("被災者に接近")
+                        cv2.imwrite("approach.png",frame)
                         break
 
-
+                    key = cv2.waitKey(1)
                     # キー入力による制御
                     if key == 27:                   # k が27(ESC)だったらwhileループを脱出，プログラム終了
                         break
@@ -159,7 +172,7 @@ class Approach:
                     elif key == ord('d'):
                         self.drone.move_right(0.3)       # 右移動
                     elif key == ord('q'):
-                        drone.rotate_ccw(20)        # 左旋回
+                        self.drone.rotate_ccw(20)        # 左旋回
                     elif key == ord('e'):
                         self.drone.rotate_cw(20)         # 右旋回
                     elif key == ord('r'):
@@ -174,9 +187,9 @@ class Approach:
 
                     # (Z)5秒おきに'command'を送って、死活チェックを通す
                     current_time = time.time()  # 現在時刻を取得
-                    if current_time - pre_time > 5.0 :  # 前回時刻から5秒以上経過しているか？
+                    if current_time - self.pre_time > 5.0 :  # 前回時刻から5秒以上経過しているか？
                         self.drone.send_command('command')   # 'command'送信
-                        pre_time = current_time         # 前回時刻を更新
+                        self.pre_time = current_time         # 前回時刻を更新
 
 
                 else: # トラッカーの更新に失敗，人が検知できなかった場合
