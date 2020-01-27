@@ -116,12 +116,12 @@ class Default:
                     x1,y1 = ((np.array(boxes[i][0:2]) * wh).astype(np.int32))
                     x2,y2 = ((np.array(boxes[i][2:4]) * wh).astype(np.int32))
                     area0 =(x2-x1)*(y2-y1) # 検出した矩形の面積を計算
-                    if classes[i] == 0 and scores[i] > 0.8 and area0 > area: # 検出結果が"person"で，面積がもっとも大きければboundを更新
+                    if classes[i] == 0 and scores[i] > 0.95 and area0 > area: # 検出結果が"person"で，面積がもっとも大きければboundを更新
                         self.drone.detect_flag = True # detectフラグを立てる
                         area = area0 # 矩形の面積を保存
-                        bound = np.array([x1, y1, x2, y2]) # boundを更新
+                        bound = np.array([x1, y1, x2-x1, y2-y1]) # boundを更新
 
-                img = cv2.rectangle(img, (bound[0],bound[1]), (bound[2],bound[3]), (0, 0, 255), 2) # 抽出した人の領域を書き込み
+                img = cv2.rectangle(img, (bound[0],bound[1]), (bound[0]+bound[2], bound[1]+bound[3]), (0, 0, 255), 2) # 抽出した人の領域を書き込み
                 img = cv2.putText(img, '{} {:.4f}'.format(
                 self.class_names[int(classes[0])], scores[0]),
                 (x1,y1), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2) # "person"の書き込み，なくていいかも
@@ -131,14 +131,14 @@ class Default:
                             cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
 
                 print("人を検知しました")
-                x = x1
-                w = x2 - x1
+                x = bound[0]
+                w = bound[2] - bound[0]
                 cx = int( x + w/2 )
 
                 d = 0   # rcコマンドの初期値は0
 
                 # 目標位置との差分にゲインを掛ける（P制御)
-                dx = 0.1 * (240 - cx)       # 画面中心との差分
+                dx = 0.2 * (240 - cx)       # 画面中心との差分
 
                 dx = -dx # 制御方向が逆だったので，-1を掛けて逆転させた
 
@@ -163,12 +163,13 @@ class Default:
                     self.pre_time = current_time         # 前回時刻を更新
                 
                 if abs(dx) < 20.0:
+                    print("centering")
                     cv2.imwrite("detect.png", img)
                     break
-
             else: # フラグが立っていなければ旋回を行い，もう一度画像検知を行う
                 cnt += 1 # 探索用カウンタを増加
                 self.drone.rotate_cw(45) # 20度旋回
+                time.sleep(1)
 
                 if cnt == 18 : # その場で一回転していたら少し前進する
                     self.drone.move_forward(1) # 1m前進
@@ -178,8 +179,6 @@ class Default:
             key = cv2.waitKey(5)
 
 
-                        
-        print("bound:" + str(bound))
         return frame, bound
 
 def main(_argv):

@@ -94,20 +94,16 @@ class Approach:
 
                 # ドローンの制御部．Tello-CV-faceのコピペなので要調整
                 if success: # 追跡状態
-                    (x1,y1,x2,y2) = tuple(map(int,roi)) # bboxの情報を取得
-                    x = x1
-                    y = y1
-                    w = x2 - x1
-                    h = y2 - y1
+                    (x,y,w,h) = tuple(map(int,roi)) # bboxの情報を取得
                     cx = int( x + w/2 )
                     cy = int( y + h/2 )
 
                     a = b = c = d = 0   # rcコマンドの初期値は0
 
                     # 目標位置との差分にゲインを掛ける（P制御)
-                    dx = 0.1 * (240 - cx)       # 画面中心との差分
-                    dy = 0.1 * (240 - cy)       # 画面中心との差分
-                    dw = 0.1 * (240 - w)        # 基準サイズ240pxとの差分
+                    dx = 0.4 * (240 - cx)       # 画面中心との差分
+                    dy = 0.4 * (240 - cy)       # 画面中心との差分
+                    dw = 0.2 * (240 - w)        # 基準サイズ240pxとの差分
 
                     dx = -dx # 制御方向が逆だったので，-1を掛けて逆転させた
 
@@ -142,14 +138,12 @@ class Approach:
                     cv2.imshow("Approaching", frame)
 
                     # 接近の判定
-                    area = w * h # 矩形の面積
-                    frame_size = (480 * 360) # 元の画像の大きさを取得
-                    print("area:" + str(area))
-                    print("size:" + str(frame_size))
-                    if area > (frame_size / 2): # 矩形の面積が取得画像の1/4より大きければ接近と判定
+                    print("width:" + str(w))
+                    if w > 160: # 矩形の面積が取得画像の1/4より大きければ接近と判定
                         self.drone.approach_flag = True
                         print("被災者に接近")
                         cv2.imwrite("approach.png",frame)
+                        time.sleep(10)
                         break
 
                     key = cv2.waitKey(1)
