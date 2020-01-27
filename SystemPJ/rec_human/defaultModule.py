@@ -43,7 +43,7 @@ class Default:
         flags.DEFINE_integer('num_classes', 80, 'number of classes in the model')
 
         
-        self.drone = drone # Telloインスタンスの設定
+        # self.drone = drone # Telloインスタンスの設定
 
 
         # yoloインスタンスの設定

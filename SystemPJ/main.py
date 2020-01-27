@@ -4,6 +4,7 @@ from tello import Tello		# tello.pyをインポート
 import time			# time.sleepを使いたいので
 import cv2			# OpenCVを使うため
 import sys
+from absl import app
 
 # こんな感じでimportするようにしよう
 sys.path.append('./ProcessVoice')
@@ -21,7 +22,7 @@ from approachModule import Approach
 # 'judingpose': 姿勢検知
 
 # メイン関数
-def main():
+def main(_argv):
 	# Telloクラスを使って，droneというインスタンス(実体)を作る
 	drone = Tello('', 8889, command_timeout=.01)  
 
@@ -29,7 +30,7 @@ def main():
 	default = Default(drone) # 人探索用のインスタンス作成
 	
 
-	track_type = "KCF" # トラッカーのタイプ，ユーザーが指定
+	# track_type = "KCF" # トラッカーのタイプ，ユーザーが指定
 
 	# 処理の開始
 	drone.send_command('command') # SDKモードを開始
@@ -45,17 +46,17 @@ def main():
 	try:
 		while True:
 
-			# (A)画像取得
-			frame = drone.read()	# 映像を1フレーム取得
-			if frame is None or frame.size == 0:	# 中身がおかしかったら無視
-				continue 
+			# # (A)画像取得
+			# frame = drone.read()	# 映像を1フレーム取得
+			# if frame is None or frame.size == 0:	# 中身がおかしかったら無視
+			# 	continue 
 
-			# (B)ここから画像処理
-			image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)		# OpenCV用のカラー並びに変換する
-			small_image = cv2.resize(image, dsize=(480,360) )	# 画像サイズを半分に変更
+			# # (B)ここから画像処理
+			# image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)		# OpenCV用のカラー並びに変換する
+			# small_image = cv2.resize(image, dsize=(480,360) )	# 画像サイズを半分に変更
 
-			cv2.imshow("camera", small_image) # 名称が"camera"のウィンドウに画像を表示
-			cv2.waitKey(5) # よくわからんがこれを入れないと画像が正しく表示されない
+			# cv2.imshow("camera", small_image) # 名称が"camera"のウィンドウに画像を表示
+			# cv2.waitKey(5) # よくわからんがこれを入れないと画像が正しく表示されない
 
 
 			# 関数として使えるように各チームで処理を作ること
@@ -66,9 +67,9 @@ def main():
 				frame, bbox = default.detect() # 人を探し，検知したら領域をbboxに保存
 
 				if drone.detect_flag: # 人を検知後statusをapproachに変更
-					drone.to_approach() 
+					# drone.to_approach() 
 					approach = Approach(drone, frame, bbox) # Approachクラスのインスタンスを作成，トラッカーの初期化
-					continue
+					break
 				
 				# デバッグ用
 				# time.sleep(1)
@@ -160,9 +161,13 @@ def main():
 		print( "SIGINTを検知" )
 
 	# telloクラスを削除
+	drone.land()
 	del drone
 
 
 # "python main.py"として実行された時だけ動く様にするおまじない処理
 if __name__ == "__main__":		# importされると"__main__"は入らないので，実行かimportかを判断できる．
-	main()    # メイン関数を実行
+	try:
+		app.run(main)
+	except SystemExit:
+		pass
