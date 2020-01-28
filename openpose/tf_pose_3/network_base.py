@@ -6,7 +6,6 @@ import abc
 import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-# import tensorflow.contrib.slim.nets 
 
 from tf_pose.common import to_str
 from tf_pose import common

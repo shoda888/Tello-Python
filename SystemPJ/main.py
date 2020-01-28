@@ -4,16 +4,21 @@ from tello import Tello		# tello.pyをインポート
 import time			# time.sleepを使いたいので
 import cv2			# OpenCVを使うため
 import sys
+import os
 from absl import app
 
 # こんな感じでimportするようにしよう
 sys.path.append('./ProcessVoice')
 sys.path.append('./ProcessImage')
 sys.path.append('./rec_human')
+
 # import *
 import speak
 from defaultModule import Default
 from approachModule import Approach 
+
+
+
 
 # ドローンのstatus定義
 # 'default': ホバリングする(初期状態)
@@ -120,10 +125,11 @@ def main(_argv):
 					drone.to_default()
 
 
-				# 以下(X)(Y)(Z)は便宜的に記載した．システムで必要な処理ではない
 
-				# (X)ウィンドウに表示
-				# cv2.imshow('OpenCV Window', small_image)	# ウィンドウに表示するイメージを変えれば色々表示できる
+			# 以下(X)(Y)(Z)は便宜的に記載した．システムで必要な処理ではない
+
+			# (X)ウィンドウに表示
+			# cv2.imshow('OpenCV Window', small_image)	# ウィンドウに表示するイメージを変えれば色々表示できる
 
 				# (Y)OpenCVウィンドウでキー入力を1ms待つ
 				# key = cv2.waitKey(1)
