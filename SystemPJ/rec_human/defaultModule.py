@@ -80,8 +80,15 @@ class Default:
 
         self.drone.detect_flag = False # detectフラグの初期化
         cnt = 0 # 探索用のカウンタの初期化
+        center = False # 中央合わせ用のフラグ
 
         while True:
+            self.drone.detect_flag = False # 中央合わせを行う関係上，ここで1度フラグを倒しておく
+            
+            # 変数の初期化
+            bound = np.array([0, 0, 0, 0])
+            area = 0
+
             frame = self.drone.read()    # 映像を1フレーム取得
             if frame is None or frame.size == 0:    # 中身がおかしかったら無視
                 continue 
@@ -89,10 +96,6 @@ class Default:
             image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)      # OpenCV用のカラー並びに変換する
             frame = cv2.resize(image, dsize=(480,360) )   # 画像サイズを半分に変更
 
-            # 変数の初期化
-            bound = np.array([0, 0, 0, 0])
-            area = 0
-            
 
             # yoloによる画像認識
             img = frame
@@ -107,8 +110,8 @@ class Default:
             self.times.append(t2-t1)
             times = self.times[-20:]
 
-            if nums != 0: # 何か物体を検知した場合
-                
+            # 何か物体を検知した場合，人かどうかを判定する．人であれば画像処理を行い，矩形が中央にあるかの判定を行う
+            if nums != 0:
 
                 # 検出結果に対し，もっとも近い人のboundを抽出
                 boxes, scores, classes, nums = boxes[0], scores[0], classes[0], nums[0]
@@ -121,28 +124,48 @@ class Default:
                         self.drone.detect_flag = True # detectフラグを立てる
                         area = area0 # 矩形の面積を保存
                         bound = np.array([x1, y1, x2-x1, y2-y1]) # boundを更新
+                
+                # 人を検出していた場合の処理
+                if self.drone.detect_flag:
+                    cnt = 0 # 探索用カウンタのクリア
 
-                img = cv2.rectangle(img, (bound[0],bound[1]), (bound[0]+bound[2], bound[1]+bound[3]), (0, 0, 255), 2) # 抽出した人の領域を書き込み
-                img = cv2.putText(img, '{} {:.4f}'.format(
-                self.class_names[int(classes[0])], scores[0]),
-                (x1,y1), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2) # "person"の書き込み，なくていいかも
+                    # 検出結果の画像への書き込み
+                    img = cv2.rectangle(img, (bound[0],bound[1]), (bound[0]+bound[2], bound[1]+bound[3]), (0, 0, 255), 2) # 抽出した人の領域を書き込み
+                    img = cv2.putText(img, "person",
+                    (bound[0],bound[1]), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2) # "person"の書き込み，なくていいかも
+                    img = cv2.putText(img, "Time: {:.2f}ms".format(sum(times)/len(times)*1000), (0, 30),
+                                cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2) # 検出時間の書き込み
+                    
+                    # 検出した人の矩形を画面中央に合わせるための処理
+                    x = bound[0] # 人の矩形の始点
+                    w = bound[2] - bound[0] # 矩形の幅
+                    cx = int( x + w/2 ) # 矩形の中央x座標
 
-                # 検出時間の書き込み
-                img = cv2.putText(img, "Time: {:.2f}ms".format(sum(times)/len(times)*1000), (0, 30),
-                            cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
+                    # 矩形のx座標中央が画像中央にあればcenterフラグを立てる
+                    if abs(240 - cx) < 20.0: 
+                        center = True
+            
+            # 処理を行なった取得画像の表示
+            cv2.imshow("detect", img)
+            cv2.waitKey(1)
 
-                print("人を検知しました")
-                x = bound[0]
-                w = bound[2] - bound[0]
-                cx = int( x + w/2 )
+            
+            # 検出結果をもとに終了判定，そうでなければ移動を行う
+            if center: # 人の矩形の中央合わせが終了していれば後処理を行い，ループを終了する
+                print("centering")
+                cv2.imwrite("detect.png", img) # 中央合わせ終了後の画像を保存，デバッグ用
 
+                # Openposeの適用
+                cv2.imwrite('./../openpose/images/input.jpg',image)
+                os.system('python3 ./../openpose/play.py')
+                break
+            elif not center and self.drone.detect_flag: # 人を検知しており，中央合わせが済んでいなければP制御で中央合わせを行う
                 d = 0   # rcコマンドの初期値は0
 
                 # 目標位置との差分にゲインを掛ける（P制御)
                 dx = 0.2 * (240 - cx)       # 画面中心との差分
 
                 dx = -dx # 制御方向が逆だったので，-1を掛けて逆転させた
-
 
                 # 旋回方向の不感帯を設定
                 d = 0.0 if abs(dx) < 20.0 else dx   # ±20未満ならゼロにする
@@ -153,35 +176,26 @@ class Default:
                 print("dx:" + str(dx))
 
                 # rcコマンドを送信
-                self.drone.send_command('rc %s %s %s %s'%(0, 0, 0, int(d)) )
-
-                
-
-                # (Z)5秒おきに'command'を送って、死活チェックを通す
-                current_time = time.time()  # 現在時刻を取得
-                if current_time - self.pre_time > 5.0 :  # 前回時刻から5秒以上経過しているか？
-                    self.drone.send_command('command')   # 'command'送信
-                    self.pre_time = current_time         # 前回時刻を更新
-                
-                if abs(dx) < 20.0:
-                    print("centering")
-                    cv2.imwrite("detect.png", img)
-
-                    cv2.imwrite('./../openpose/images/input.jpg',image)
-                    os.system('python3 ./../openpose/play.py')
-                    break
-            else: # フラグが立っていなければ旋回を行い，もう一度画像検知を行う
+                self.drone.send_command('rc %s %s %s %s'%(0, 0, 0, int(d)) )                
+            elif not self.drone.detect_flag: # 人を検出していなければ旋回を行う
                 cnt += 1 # 探索用カウンタを増加
-                self.drone.rotate_cw(45) # 20度旋回
-                time.sleep(1)
+                self.drone.rotate_cw(45) # 45度旋回
 
-                if cnt == 18 : # その場で一回転していたら少し前進する
+                # その場で一回転していたら少し前進する
+                if cnt == 8 :
                     self.drone.move_forward(1) # 1m前進
-                    cnt = 0 # 探索用カウンタのリセット
+                    cnt = 0 # 探索用カウンタのクリア
+            else: # 例外処理
+                print("detectメソッド内での例外")
+                self.drone.land() # 着陸
+                sys.exit() # システムの終了
 
-            cv2.imshow("detect", img)
-            key = cv2.waitKey(5)
 
+            # 5秒おきに'command'を送って、死活チェックを通す
+            current_time = time.time()  # 現在時刻を取得
+            if current_time - self.pre_time > 5.0 :  # 前回時刻から5秒以上経過しているか？
+                self.drone.send_command('command')   # 'command'送信
+                self.pre_time = current_time         # 前回時刻を更新
 
         return frame, bound
 
