@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 
+import os
+import sys
+
 import time
-from absl import app, flags, logging
+from absl import app, flags
 from absl.flags import FLAGS
 import numpy as np
 import cv2
 import tensorflow as tf
 from yolov3_tf2.models import (
-    YoloV3, YoloV3Tiny
+    YoloV3
 )
 from yolov3_tf2.dataset import transform_images
-from yolov3_tf2.utils import draw_outputs
-import os
+
 
 
 """
