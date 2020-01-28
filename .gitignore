@@ -10,3 +10,9 @@ Single_Tello_Test/log/*
 SystemPJ/rec_human/checkpoints/yolov3.tf.data-00000-of-00001
 
 .idea/
+
+*.jpg
+
+openpose/models/graph/cmu/graph_opt.pb
+
+*.png
