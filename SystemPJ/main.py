@@ -124,13 +124,6 @@ def main(_argv):
 					print(drone.status)
 					drone.to_default()
 
-			if drone.status == 'judingpose':
-				# 人の姿勢を検出する．姿勢推定を行い人の状態の判定後，人に話しかけ，statusを'default'に戻す
-
-				# デバッグ用
-				time.sleep(1)
-				print(drone.status)
-				drone.to_default()
 
 
 			# 以下(X)(Y)(Z)は便宜的に記載した．システムで必要な処理ではない

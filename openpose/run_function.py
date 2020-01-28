@@ -64,7 +64,7 @@ def openpose(image,model='cmu',resize='0x0',resize_out_ratio=4.0):
     print('human_models')
     print(human_models)
 
-    write_csv('uncho.csv',human_models[0])
+    # write_csv('uncho.csv',human_models[0])
 
     print(type(humans))
     print('---------------humans----------------')
@@ -72,4 +72,4 @@ def openpose(image,model='cmu',resize='0x0',resize_out_ratio=4.0):
     image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
 
     cv2.imwrite("output_img.png",image)    
-    run_load_human_model.add_label()
+    # run_load_human_model.add_label()
