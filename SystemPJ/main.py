@@ -124,11 +124,19 @@ def main(_argv):
 					print(drone.status)
 					drone.to_default()
 
+			if drone.status == 'judingpose':
+				# 人の姿勢を検出する．姿勢推定を行い人の状態の判定後，人に話しかけ，statusを'default'に戻す
 
-				# 以下(X)(Y)(Z)は便宜的に記載した．システムで必要な処理ではない
+				# デバッグ用
+				time.sleep(1)
+				print(drone.status)
+				drone.to_default()
 
-				# (X)ウィンドウに表示
-				# cv2.imshow('OpenCV Window', small_image)	# ウィンドウに表示するイメージを変えれば色々表示できる
+
+			# 以下(X)(Y)(Z)は便宜的に記載した．システムで必要な処理ではない
+
+			# (X)ウィンドウに表示
+			# cv2.imshow('OpenCV Window', small_image)	# ウィンドウに表示するイメージを変えれば色々表示できる
 
 				# (Y)OpenCVウィンドウでキー入力を1ms待つ
 				# key = cv2.waitKey(1)
