@@ -43,12 +43,12 @@ def main():
 	pre_time = current_time		# 5秒ごとの'command'送信のための時刻変数
 
 	time.sleep(0.5)
-	# drone.subscribe() # 対話開始
+	drone.subscribe() # 対話開始
 	
 	# ここでアレクサに「救助アプリを開いて」と言うと離陸し対話を受け付ける
 
 	# 強制離陸する場合
-	drone.start_flag = True
+	# drone.start_flag = True
 	
 	time.sleep(0.5)		# 通信が安定するまでちょっと待つ
 	cnt_frame = 0   # フレーム枚数をカウントする変数
@@ -116,7 +116,7 @@ def main():
 							# 目標位置との差分にゲインを掛ける（P制御)
 							dx = 0.4 * (240 - cx)       # 画面中心との差分
 							dy = 0.4 * (180 - cy)       # 画面中心との差分
-							dw = 0.8 * (100 - w)        # 基準顔サイズ100pxとの差分
+							dw = 0.8 * (75 - w)        # 基準顔サイズ100pxとの差分
 
 							dx = -dx # 制御方向が逆だったので，-1を掛けて逆転させた
 
