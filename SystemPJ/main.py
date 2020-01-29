@@ -128,33 +128,33 @@ def main(_argv):
 					
 
 				if drone.status == 'judingpose':
-				  # 人の姿勢を検出する．姿勢推定を行い人の状態の判定後，人に話しかけ，statusを'default'に戻す
-          speak.mp3play('../openpose/jirikidehinanndekinai.mp3')
-          time.sleep(1)
-          speak.mp3play('../openpose/jirikidehinanndekiru.mp3')
-          time.sleep(1)
+				  	# 人の姿勢を検出する．姿勢推定を行い人の状態の判定後，人に話しかけ，statusを'default'に戻す
+					speak.mp3play('../openpose/jirikidehinanndekinai.mp3')
+					time.sleep(1)
+					speak.mp3play('../openpose/jirikidehinanndekiru.mp3')
+					time.sleep(1)
 
-          while True:
-            frame = drone.read()	# 映像を1フレーム取得
-            if frame is None or frame.size == 0:	# 中身がおかしかったら無視
-              continue 
+					while True:
+						frame = drone.read()	# 映像を1フレーム取得
+						if frame is None or frame.size == 0:	# 中身がおかしかったら無視
+						continue 
 
-            # (B)ここから画像処理
-            image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # OpenCV用のカラー並びに変換する
-            small_image = cv2.resize(image, dsize=(480,360) )	# 画像サイズを半分に変更
+						# (B)ここから画像処理
+						image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # OpenCV用のカラー並びに変換する
+						small_image = cv2.resize(image, dsize=(480,360) )	# 画像サイズを半分に変更
 
-            run_function.openpose(small_image)
-            if run_load_human_model.add_label("../openpose/uncho.csv") == 3:
-              speak.mp3play('../openpose/hinansitekudasai.mp3')
-            else:
-              speak.mp3play('../openpose/kyuujyowoyobimasu.mp3')
+						run_function.openpose(small_image)
+						if run_load_human_model.add_label("../openpose/uncho.csv") == 3:
+						speak.mp3play('../openpose/hinansitekudasai.mp3')
+						else:
+						speak.mp3play('../openpose/kyuujyowoyobimasu.mp3')
 
-          
-          # デバッグ用
-          time.sleep(1)
-          print(drone.status)
-          drone.to_default()
-          
+					
+					# デバッグ用
+					time.sleep(1)
+					print(drone.status)
+					drone.to_default()
+					
 
 			# 以下(X)(Y)(Z)は便宜的に記載した．システムで必要な処理ではない
 
