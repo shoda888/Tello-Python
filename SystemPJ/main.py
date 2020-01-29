@@ -6,7 +6,7 @@ import cv2			# OpenCVを使うため
 import sys
 import os
 from absl import app
-
+# 
 # こんな感じでimportするようにしよう
 sys.path.append('./ProcessVoice')
 sys.path.append('./ProcessImage')
@@ -15,13 +15,11 @@ sys.path.append('../openpose')
 
 # import *
 import speak
-import run_load_human_model
-import run_function
-from defaultModule import Default
-from approachModule import Approach
+# import run_load_human_model
+# import run_function
+# from defaultModule import Default
+# from approachModule import Approach
 import os 
-
-
 
 
 # ドローンのstatus定義
@@ -36,7 +34,7 @@ def main(_argv):
 	drone = Tello('', 8889, command_timeout=.01)  
 
 	# 人検知，接近用のインスタンス，フラグ，トラッカータイプ
-	default = Default(drone) # 人探索用のインスタンス作成
+	# default = Default(drone) # 人探索用のインスタンス作成
 	
 
 	# track_type = "KCF" # トラッカーのタイプ，ユーザーが指定
@@ -47,15 +45,20 @@ def main(_argv):
 	current_time = time.time()	# 現在時刻の保存変数
 	pre_time = current_time		# 5秒ごとの'command'送信のための時刻変数
 
-	drone.subscribe() # 対話開始
+	# drone.subscribe() # 対話開始
 	
 	# ここでアレクサに「救助アプリを開いて」と言うと離陸し対話を受け付ける
 
 	# 強制離陸する場合
-	# drone.takeoff()
-	
+	drone.takeoff()
+	drone.start_flag = True
+	cascPath = 'haarcascade_frontalface_alt.xml'    # 分類器データはローカルに置いた物を使う
+	faceCascade = cv2.CascadeClassifier(cascPath)   # カスケードクラスの作成
 	
 	time.sleep(0.5)		# 通信が安定するまでちょっと待つ
+	cnt_frame = 0   # フレーム枚数をカウントする変数
+	pre_faces = []  # 顔検出結果を格納する変数
+	flag = 1        # 自動制御をON/OFFするフラグ
 
 	# drone.takeoff() # 自動で離陸しているが，ここはAlexaを使用して離陸させた方が良いかも(対話を開始するタイミングをトリガーさせるためにも)
 	
@@ -65,6 +68,95 @@ def main(_argv):
 		while True:
 
 			if drone.start_flag:
+
+				# (A)画像取得
+				frame = drone.read()    # 映像を1フレーム取得
+				if frame is None or frame.size == 0:    # 中身がおかしかったら無視
+					continue 
+
+				# (B)ここから画像処理
+				image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)      # OpenCV用のカラー並びに変換する
+				small_image = cv2.resize(image, dsize=(480,360) )   # 画像サイズを半分に変更
+
+				cv_image = small_image  # ウィンドウ表示画像の名前はcv_imageにする
+
+				if drone.status == "amae":
+					# 5フレームに１回顔認識処理をする
+					if cnt_frame >= 5:
+						# 顔検出のためにグレイスケール画像に変換，ヒストグラムの平坦化もかける
+						gray = cv2.cvtColor(small_image, cv2.COLOR_BGR2GRAY)
+						gray = cv2.equalizeHist( gray )
+
+						# 顔検出
+						faces = faceCascade.detectMultiScale(gray, 1.1, 3, 0, (10, 10))
+
+						# 検出結果を格納
+						pre_faces = faces
+
+						cnt_frame = 0   # フレーム枚数をリセット
+
+
+					# 顔の検出結果が空なら，何もしない
+					if len(pre_faces) == 0:
+						pass
+					else:   # 顔があるなら続けて処理
+						drone.flip('f')
+						# 検出した顔に枠を書く
+						for (x, y, w, h) in pre_faces:
+							cv2.rectangle(cv_image, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+						# １個めの顔のx,y,w,h,顔中心cx,cyを得る
+						x = pre_faces[0][0]
+						y = pre_faces[0][1]
+						w = pre_faces[0][2]
+						h = pre_faces[0][3]
+						cx = int( x + w/2 )
+						cy = int( y + h/2 )
+
+						# 自動制御フラグが1の時だけ，Telloを動かす
+						if flag == 1:
+							a = b = c = d = 0   # rcコマンドの初期値は0
+
+							# 目標位置との差分にゲインを掛ける（P制御)
+							dx = 0.4 * (240 - cx)       # 画面中心との差分
+							dy = 0.4 * (180 - cy)       # 画面中心との差分
+							dw = 0.8 * (100 - w)        # 基準顔サイズ100pxとの差分
+
+							dx = -dx # 制御方向が逆だったので，-1を掛けて逆転させた
+
+							print('dx=%f  dy=%f  dw=%f'%(dx, dy, dw) )  # printして制御量を確認できるように
+
+							# 旋回方向の不感帯を設定
+							d = 0.0 if abs(dx) < 20.0 else dx   # ±20未満ならゼロにする
+							# 旋回方向のソフトウェアリミッタ(±100を超えないように)
+							d =  100 if d >  100.0 else d
+							d = -100 if d < -100.0 else d
+
+							# 前後方向の不感帯を設定
+							b = 0.0 if abs(dw) < 10.0 else dw   # ±10未満ならゼロにする
+							# 前後方向のソフトウェアリミッタ
+							b =  100 if b >  100.0 else b
+							b = -100 if b < -100.0 else b
+
+
+							# 上下方向の不感帯を設定
+							c = 0.0 if abs(dy) < 30.0 else dy   # ±30未満ならゼロにする
+							# 上下方向のソフトウェアリミッタ
+							c =  100 if c >  100.0 else c
+							c = -100 if c < -100.0 else c
+
+							# rcコマンドを送信
+							drone.send_command('rc %s %s %s %s'%(int(a), int(b), int(c), int(d)) )
+							print("@@@@@@@@@@@@@@@@@@@@@@@")
+							print("コミュニケート")
+							print("@@@@@@@@@@@@@@@@@@@@@@@")
+						drone.flip('f')
+						drone.to_communicate()
+
+					cnt_frame += 1  # フレームを+1枚
+
+					# (X)ウィンドウに表示
+					cv2.imshow('OpenCV Window', cv_image)   # ウィンドウに表示するイメージを変えれば色々表示できる
 
 
 				if drone.status == 'default':
@@ -116,12 +208,16 @@ def main(_argv):
 					# drone.to_judingpose()
 										
 					# 対話時間
+					
 					time.sleep(5)
 					drone.send_command('command')	# 'command'送信
+					drone.flip('b')
 					time.sleep(5)
 					drone.send_command('command')	# 'command'送信
+					drone.flip('f')
 					time.sleep(5)
 					drone.send_command('command')	# 'command'送信
+					drone.flip('b')
 
 					if drone.status == 'communicate': # 無言だった場合
 						drone.status = 'judingpose' # 人の姿勢を検出する
@@ -134,26 +230,27 @@ def main(_argv):
 					speak.mp3play('../openpose/jirikidehinanndekiru.mp3')
 					time.sleep(1)
 
-					while True:
-						frame = drone.read()	# 映像を1フレーム取得
-						if frame is None or frame.size == 0:	# 中身がおかしかったら無視
-							continue 
+					# while True:
+					# 	frame = drone.read()	# 映像を1フレーム取得
+					# 	if frame is None or frame.size == 0:	# 中身がおかしかったら無視
+					# 		continue 
 
-						# (B)ここから画像処理
-						image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # OpenCV用のカラー並びに変換する
-						small_image = cv2.resize(image, dsize=(480,360) )	# 画像サイズを半分に変更
+					# 	# (B)ここから画像処理
+					# 	image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # OpenCV用のカラー並びに変換する
+					# 	small_image = cv2.resize(image, dsize=(480,360) )	# 画像サイズを半分に変更
 
-						run_function.openpose(small_image)
-						if run_load_human_model.add_label("../openpose/uncho.csv") == 3:
-							speak.mp3play('../openpose/hinansitekudasai.mp3')
-						else:
-							speak.mp3play('../openpose/kyuujyowoyobimasu.mp3')
+					# 	run_function.openpose(small_image)
+					# 	if run_load_human_model.add_label("../openpose/uncho.csv") == 3:
+					# 		speak.mp3play('../openpose/hinansitekudasai.mp3')
+					# 	else:
+					# 		speak.mp3play('../openpose/kyuujyowoyobimasu.mp3')
 
 					
 					# デバッグ用
 					time.sleep(1)
 					print(drone.status)
-					drone.to_default()
+					# drone.to_default()
+					drone.status == "amae"
 					
 
 			# 以下(X)(Y)(Z)は便宜的に記載した．システムで必要な処理ではない

@@ -20,7 +20,7 @@ def main():
 
     cnt_frame = 0   # フレーム枚数をカウントする変数
     pre_faces = []  # 顔検出結果を格納する変数
-    flag = 0        # 自動制御をON/OFFするフラグ
+    flag = 1        # 自動制御をON/OFFするフラグ
 
     #Ctrl+cが押されるまでループ
     try:

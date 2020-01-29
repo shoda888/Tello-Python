@@ -24,7 +24,7 @@ class Tello:
         :param tello_port (int): Telloのポート.普通は8889
         """
 
-        self.status = 'default'
+        self.status = 'amae'
 
         self.detect_flag = False # 人の検知フラグ
         self.approach_flag = False # 人の接近フラグ
