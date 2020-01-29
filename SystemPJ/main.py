@@ -5,7 +5,6 @@ import time			# time.sleepを使いたいので
 import cv2			# OpenCVを使うため
 import sys
 import os
-from absl import app
 # 
 # こんな感じでimportするようにしよう
 sys.path.append('./ProcessVoice')
@@ -29,31 +28,27 @@ import os
 # 'judingpose': 姿勢検知
 
 # メイン関数
-def main(_argv):
+def main():
+	cascPath = 'haarcascade_frontalface_alt.xml'    # 分類器データはローカルに置いた物を使う
+	faceCascade = cv2.CascadeClassifier(cascPath)   # カスケードクラスの作成
+
 	# Telloクラスを使って，droneというインスタンス(実体)を作る
 	drone = Tello('', 8889, command_timeout=.01)  
 
 	# 人検知，接近用のインスタンス，フラグ，トラッカータイプ
 	# default = Default(drone) # 人探索用のインスタンス作成
 	
-
-	# track_type = "KCF" # トラッカーのタイプ，ユーザーが指定
-
 	# 処理の開始
-	drone.send_command('command') # SDKモードを開始
-
 	current_time = time.time()	# 現在時刻の保存変数
 	pre_time = current_time		# 5秒ごとの'command'送信のための時刻変数
 
+	time.sleep(0.5)
 	# drone.subscribe() # 対話開始
 	
 	# ここでアレクサに「救助アプリを開いて」と言うと離陸し対話を受け付ける
 
 	# 強制離陸する場合
-	drone.takeoff()
 	drone.start_flag = True
-	cascPath = 'haarcascade_frontalface_alt.xml'    # 分類器データはローカルに置いた物を使う
-	faceCascade = cv2.CascadeClassifier(cascPath)   # カスケードクラスの作成
 	
 	time.sleep(0.5)		# 通信が安定するまでちょっと待つ
 	cnt_frame = 0   # フレーム枚数をカウントする変数
@@ -100,8 +95,8 @@ def main(_argv):
 					if len(pre_faces) == 0:
 						pass
 					else:   # 顔があるなら続けて処理
-						drone.flip('f')
 						# 検出した顔に枠を書く
+						print("face")
 						for (x, y, w, h) in pre_faces:
 							cv2.rectangle(cv_image, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
@@ -115,6 +110,7 @@ def main(_argv):
 
 						# 自動制御フラグが1の時だけ，Telloを動かす
 						if flag == 1:
+							print("control")
 							a = b = c = d = 0   # rcコマンドの初期値は0
 
 							# 目標位置との差分にゲインを掛ける（P制御)
@@ -147,57 +143,16 @@ def main(_argv):
 
 							# rcコマンドを送信
 							drone.send_command('rc %s %s %s %s'%(int(a), int(b), int(c), int(d)) )
-							print("@@@@@@@@@@@@@@@@@@@@@@@")
-							print("コミュニケート")
-							print("@@@@@@@@@@@@@@@@@@@@@@@")
-						drone.flip('f')
-						drone.to_communicate()
+							
+							if a == 0 and b == 0 and c == 0 and d == 0:
+								print("@@@@@@@@@@@@@@@@@@@@@@@")
+								print("コミュニケート")
+								print("@@@@@@@@@@@@@@@@@@@@@@@")
+								drone.flip('f')
+								drone.to_communicate()
 
 					cnt_frame += 1  # フレームを+1枚
 
-					# (X)ウィンドウに表示
-					cv2.imshow('OpenCV Window', cv_image)   # ウィンドウに表示するイメージを変えれば色々表示できる
-
-
-				if drone.status == 'default':
-					# デフォルト状態でホバリングし，常に人を認識する．認識した時，statusを'approach'に変更する
-					print(drone.status)
-
-					frame, bbox = default.detect() # 人を探し，検知したら領域をbboxに保存
-
-					if drone.detect_flag: # 人を検知後statusをapproachに変更
-						drone.to_communicate() 
-						approach = Approach(drone, frame, bbox) # Approachクラスのインスタンスを作成，トラッカーの初期化
-						continue
-					
-					# デバッグ用
-					# time.sleep(1)
-					# print(drone.status)
-					# drone.to_approach()
-
-				if drone.status == 'approach':
-					# 認識した人に近づく．近づき終わったらstatusを'communicate'に変更する
-					print(drone.status)
-					approach.approach() # 検知した人を追跡．結果を返す
-
-					# 人を追跡できているか，または接近できたかどうかの判定
-					if drone.detect_flag and drone.approach_flag: # 接近できていればstatusをcommunicateへ変更
-						# drone.to_communicate()
-						break
-					elif not drone.detect_flag: # 追跡が失敗したらdefaultへ戻る
-						drone.to_default()
-						del approach # Approachクラスのインスタンスを削除
-					else: # 例外処理
-						print("なんかエラーっぽいよ")
-						print("detect:" + str(drone.detect_flag))
-						print("approach:" + str(drone.approach_flag))
-						time.sleep(10)
-
-
-					# デバッグ用
-					# time.sleep(1)
-					# drone.to_communicate()
-         
 
 				if drone.status == 'communicate':
 					# 人と対話する．対話が正常終了したらstatusを'default'に戻す．対話に失敗した場合はstatusを'judingpose'に
@@ -253,46 +208,47 @@ def main(_argv):
 					drone.status == "amae"
 					
 
-			# 以下(X)(Y)(Z)は便宜的に記載した．システムで必要な処理ではない
-
-			# (X)ウィンドウに表示
-			# cv2.imshow('OpenCV Window', small_image)	# ウィンドウに表示するイメージを変えれば色々表示できる
-
-			# (Y)OpenCVウィンドウでキー入力を1ms待つ
-			# key = cv2.waitKey(1)
-			# if key == 27:					# k が27(ESC)だったらwhileループを脱出，プログラム終了
-			# 	break
-			# elif key == ord('t'):
-			# 	drone.takeoff()				# 離陸
-			# elif key == ord('l'):
-			# 	drone.land()				# 着陸
-			# elif key == ord('w'):
-			# 	drone.move_forward(0.3)		# 前進
-			# elif key == ord('s'):
-			# 	drone.move_backward(0.3)	# 後進
-			# elif key == ord('a'):
-			# 	drone.move_left(0.3)		# 左移動
-			# elif key == ord('d'):
-			# 	drone.move_right(0.3)		# 右移動
-			# elif key == ord('q'):
-			# 	drone.rotate_ccw(20)		# 左旋回
-			# elif key == ord('e'):
-			# 	drone.rotate_cw(20)			# 右旋回
-			# elif key == ord('r'):
-			# 	drone.move_up(0.3)			# 上昇
-			# elif key == ord('f'):
-			# 	drone.move_down(0.3)		# 下降
-			# elif key == ord('o'):
-			# 	image_path = "../openpose/images/"  # openpose
-			# 	image = cv2.imwrite(image_path+"input.jpg",small_image) 
-			# 	os.system('python ../openpose/openpose.py') 
-
-
-			# (Z)5秒おきに'command'を送って、死活チェックを通す
-			current_time = time.time()	# 現在時刻を取得
-			if current_time - pre_time > 5.0 :	# 前回時刻から5秒以上経過しているか？
-				drone.send_command('command')	# 'command'送信
-				pre_time = current_time			# 前回時刻を更新
+				# (X)ウィンドウに表示
+				cv2.imshow('OpenCV Window', cv_image)   # ウィンドウに表示するイメージを変えれば色々表示できる
+				
+				# (Y)OpenCVウィンドウでキー入力を1ms待つ
+				key = cv2.waitKey(1)
+				if key == 27:                   # k が27(ESC)だったらwhileループを脱出，プログラム終了
+					break
+				elif key == ord('t'):
+					drone.takeoff()             # 離陸
+				elif key == ord('l'):
+					flag = 0    # フィードバックOFF
+					drone.send_command('rc 0 0 0 0')    # ラジコン指令をゼロに
+					drone.land()    # 着陸
+					time.sleep(3)   # 着陸するまで他のコマンドを打たないよう，ウェイトを入れる
+				elif key == ord('w'):
+					drone.move_forward(0.3)     # 前進
+				elif key == ord('s'):
+					drone.move_backward(0.3)    # 後進
+				elif key == ord('a'):
+					drone.move_left(0.3)        # 左移動
+				elif key == ord('d'):
+					drone.move_right(0.3)       # 右移動
+				elif key == ord('q'):
+					drone.rotate_ccw(20)        # 左旋回
+				elif key == ord('e'):
+					drone.rotate_cw(20)         # 右旋回
+				elif key == ord('r'):
+					drone.move_up(0.3)          # 上昇
+				elif key == ord('f'):
+					drone.move_down(0.3)        # 下降
+				elif key == ord('1'):
+					flag = 1                    # フィードバック制御ON
+				elif key == ord('2'):
+					flag = 0                    # フィードバック制御OFF
+					drone.send_command('rc 0 0 0 0')    # ラジコン指令をゼロに
+					
+				# (Z)5秒おきに'command'を送って、死活チェックを通す
+				current_time = time.time()	# 現在時刻を取得
+				if current_time - pre_time > 5.0 :	# 前回時刻から5秒以上経過しているか？
+					drone.send_command('command')	# 'command'送信
+					pre_time = current_time			# 前回時刻を更新
 
 
 	except( KeyboardInterrupt, SystemExit):    # Ctrl+cが押されたら離脱
@@ -305,7 +261,4 @@ def main(_argv):
 
 # "python main.py"として実行された時だけ動く様にするおまじない処理
 if __name__ == "__main__":		# importされると"__main__"は入らないので，実行かimportかを判断できる．
-	try:
-		app.run(main)
-	except SystemExit:
-		pass
+	main() 
