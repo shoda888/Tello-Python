@@ -499,7 +499,7 @@ class Tello:
 
         #対話が行えたらドローンを初期状態に戻す
         if dic['message'] == "solved":
-            self.to_default()
+            self.land()
     
     def subscribe(self):
         # For certificate based connection
