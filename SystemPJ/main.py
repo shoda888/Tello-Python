@@ -205,7 +205,7 @@ def main():
 					time.sleep(1)
 					print(drone.status)
 					# drone.to_default()
-					drone.status == "amae"
+					drone.land()
 					
 
 				# (X)ウィンドウに表示
