@@ -137,7 +137,7 @@ def main(_argv):
 					while True:
 						frame = drone.read()	# 映像を1フレーム取得
 						if frame is None or frame.size == 0:	# 中身がおかしかったら無視
-						continue 
+							continue 
 
 						# (B)ここから画像処理
 						image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # OpenCV用のカラー並びに変換する
@@ -145,9 +145,9 @@ def main(_argv):
 
 						run_function.openpose(small_image)
 						if run_load_human_model.add_label("../openpose/uncho.csv") == 3:
-						speak.mp3play('../openpose/hinansitekudasai.mp3')
+							speak.mp3play('../openpose/hinansitekudasai.mp3')
 						else:
-						speak.mp3play('../openpose/kyuujyowoyobimasu.mp3')
+							speak.mp3play('../openpose/kyuujyowoyobimasu.mp3')
 
 					
 					# デバッグ用
