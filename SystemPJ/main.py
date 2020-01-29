@@ -110,8 +110,15 @@ def main(_argv):
 					# デバッグ用
 					# drone.to_default()
 					# drone.to_judingpose()
-					
-					time.sleep(15) # 対話時間
+										
+					# 対話時間
+					time.sleep(5)
+					drone.send_command('command')	# 'command'送信
+					time.sleep(5)
+					drone.send_command('command')	# 'command'送信
+					time.sleep(5)
+					drone.send_command('command')	# 'command'送信
+
 					if drone.status == 'communicate': # 無言だった場合
 						drone.status = 'judingpose' # 人の姿勢を検出する
 					
