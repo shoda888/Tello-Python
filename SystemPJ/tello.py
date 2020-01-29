@@ -27,7 +27,8 @@ class Tello:
         self.status = 'default'
 
         self.detect_flag = False # 人の検知フラグ
-        self.close_flag = False # 人の接近フラグ
+        self.approach_flag = False # 人の接近フラグ
+        self.start_flag = False # 人の接近フラグ
 
         self.abort_flag = False     # 中断フラグ
         self.decoder = libh264decoder.H264Decoder() # H.264のデコード関数を登録
@@ -490,6 +491,11 @@ class Tello:
         print('--------------\n\n')
         # command = payload[0]
         dic = ast.literal_eval(payload)
+
+        #アレクサの指示でドローンを離陸させる
+        if dic['message'] == "takeoff":
+            self.takeoff()
+            self.start_flag = True
 
         #対話が行えたらドローンを初期状態に戻す
         if dic['message'] == "solved":
